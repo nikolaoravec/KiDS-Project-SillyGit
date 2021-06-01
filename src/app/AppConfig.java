@@ -49,7 +49,10 @@ public class AppConfig {
 	public static int BOOTSTRAP_PORT;
 	public static String BOOTSTRAP_IP;
 	public static int SERVENT_COUNT;
-
+	public static String STORAGE;
+	public static String WORK_ROUTE;
+	public static String STORAGE_PATH;
+	public static String WORK_ROUTE_PATH;
 	public static ChordState chordState;
 
 	/**
@@ -72,7 +75,16 @@ public class AppConfig {
 	 * @param serventId  id of the servent, as used in the configuration file
 	 */
 	public static void readConfig(String configName, int serventId) {
+		
+		
+		
 		Properties properties = new Properties();
+		
+		
+		
+		
+		
+		
 		try {
 			properties.load(new FileInputStream(new File(configName)));
 
@@ -127,6 +139,31 @@ public class AppConfig {
 		}
 
 		myServentInfo = new ServentInfo(serventIp, serventPort);
+		
+		
+//		Load work and storage
+		STORAGE = properties.getProperty("storage.route"+serventId);
+		WORK_ROUTE = properties.getProperty("work.route"+serventId);
+		
+		STORAGE_PATH = (System.getProperty("user.dir")) +  "/chord/" + STORAGE; 
+		WORK_ROUTE_PATH = (System.getProperty("user.dir")) +  "/chord/" + WORK_ROUTE; 
+		
+		File storageProjectDir = new File(STORAGE_PATH);
+		File workProjectDir = new File(WORK_ROUTE_PATH);
+		
+		if (!storageProjectDir.exists()) {
+			try {
+				storageProjectDir.mkdir();
+            } catch (SecurityException se) {
+                se.printStackTrace();
+            }
+		}
+		if (!workProjectDir.exists()) {
+			try {
+				workProjectDir.mkdir();			
+            } catch (SecurityException se) {
+                se.printStackTrace();
+            }
+		}
 	}
-
 }

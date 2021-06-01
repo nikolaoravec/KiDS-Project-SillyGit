@@ -7,8 +7,8 @@ import java.util.Scanner;
 import app.AppConfig;
 import app.Cancellable;
 import cli.command.CLICommand;
-import cli.command.DHTGetCommand;
-import cli.command.DHTPutCommand;
+import cli.command.DHTPullCommand;
+import cli.command.DHTAddCommand;
 import cli.command.InfoCommand;
 import cli.command.PauseCommand;
 import cli.command.StopCommand;
@@ -45,8 +45,8 @@ public class CLIParser implements Runnable, Cancellable {
 		commandList.add(new InfoCommand());
 		commandList.add(new PauseCommand());
 		commandList.add(new SuccessorInfo());
-		commandList.add(new DHTGetCommand());
-		commandList.add(new DHTPutCommand());
+		commandList.add(new DHTPullCommand());
+		commandList.add(new DHTAddCommand());
 		commandList.add(new StopCommand(this, listener));
 	}
 	

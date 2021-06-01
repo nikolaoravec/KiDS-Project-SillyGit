@@ -16,7 +16,8 @@ public class TellGetHandler implements MessageHandler {
 	public void run() {
 		if (clientMessage.getMessageType() == MessageType.TELL_GET) {
 			String parts[] = clientMessage.getMessageText().split(":");
-			
+			// dobicemo pullovane fajlove / foldere
+			// koje treba da smestimo u svoj radni okvir
 			if (parts.length == 2) {
 				try {
 					int key = Integer.parseInt(parts[0]);

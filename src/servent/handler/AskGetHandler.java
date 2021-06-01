@@ -1,5 +1,6 @@
 package servent.handler;
 
+import java.io.File;
 import java.util.Map;
 
 import app.AppConfig;
@@ -22,26 +23,30 @@ public class AskGetHandler implements MessageHandler {
 	public void run() {
 		if (clientMessage.getMessageType() == MessageType.ASK_GET) {
 			try {
-				int key = Integer.parseInt(clientMessage.getMessageText());
-				if (AppConfig.chordState.isKeyMine(key)) {
-					Map<Integer, Integer> valueMap = AppConfig.chordState.getValueMap();
+				String[]  messageText = clientMessage.getMessageText().split(",");
+				
+				int hash = Integer.parseInt(messageText[0]);
+				int version = Integer.parseInt(messageText[1]);
+				
+				if (AppConfig.chordState.isKeyMine(hash)) {
+					Map<Integer, File> valueMap = AppConfig.chordState.getValueMap(); 
 					int value = -1;
-
-					if (valueMap.containsKey(key)) {
-						value = valueMap.get(key);
+					
+					if (valueMap.containsKey(hash)) {
+						// moramo naci odgovarajucu verziju
+						//value = valueMap.get(hash);
 					}
-
-					TellGetMessage tgm = new TellGetMessage(AppConfig.myServentInfo.getListenerPort(),
-							AppConfig.myServentInfo.getIpAddress(), clientMessage.getSenderPort(),
-							clientMessage.getSenderIp(), key, value);
-					MessageUtil.sendMessage(tgm);
+					// vraticemo vrvt neki nas objekat koji ce opisivati fajl ili folder
+//					TellGetMessage tgm = new TellGetMessage(AppConfig.myServentInfo.getListenerPort(), clientMessage.getSenderPort(),
+//															key, value);
+					//MessageUtil.sendMessage(tgm);
 				} else {
-					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(key);
-					AskGetMessage agm = new AskGetMessage(AppConfig.myServentInfo.getListenerPort(),
-							AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
-							clientMessage.getMessageText());
-					MessageUtil.sendMessage(agm);
+					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(hash);
+				//	AskGetMessage agm = new AskGetMessage(clientMessage.getSenderPort(), nextNode.getListenerPort(), clientMessage.getMessageText());
+				//	MessageUtil.sendMessage(agm);
 				}
+				
+				
 			} catch (NumberFormatException e) {
 				AppConfig.timestampedErrorPrint("Got ask get with bad text: " + clientMessage.getMessageText());
 			}

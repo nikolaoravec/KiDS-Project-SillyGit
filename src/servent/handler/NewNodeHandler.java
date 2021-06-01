@@ -1,5 +1,6 @@
 package servent.handler;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,14 +48,14 @@ public class NewNodeHandler implements MessageHandler {
 
 				AppConfig.chordState.setPredecessor(newNodeInfo);
 
-				Map<Integer, Integer> myValues = AppConfig.chordState.getValueMap();
-				Map<Integer, Integer> hisValues = new HashMap<>();
+				Map<Integer, File> myValues = AppConfig.chordState.getValueMap();
+				Map<Integer, File> hisValues = new HashMap<>();
 
 				int myId = AppConfig.myServentInfo.getChordId();
 				int hisPredId = hisPred.getChordId();
 				int newNodeId = newNodeInfo.getChordId();
 
-				for (Entry<Integer, Integer> valueEntry : myValues.entrySet()) {
+				for (Entry<Integer, File> valueEntry : myValues.entrySet()) {
 					if (hisPredId == myId) { // i am first and he is second
 						if (myId < newNodeId) {
 							if (valueEntry.getKey() <= newNodeId && valueEntry.getKey() > myId) {
