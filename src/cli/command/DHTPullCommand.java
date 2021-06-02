@@ -1,6 +1,8 @@
 package cli.command;
 
+
 import java.io.File;
+import java.util.List;
 
 import app.AppConfig;
 import app.ChordState;
@@ -23,7 +25,8 @@ public class DHTPullCommand implements CLICommand {
 				fileName = splitArgs[0];
 				
 //				Version found
-			} if (splitArgs.length == 2) {
+			} 
+			if (splitArgs.length == 2) {
 				fileName = splitArgs[0];
 				try {
 				version = Integer.parseInt(splitArgs[1]);
@@ -33,8 +36,8 @@ public class DHTPullCommand implements CLICommand {
 				
 			}
 			int hashFileName = ChordState.chordHash(fileName);
-			
-			File val = AppConfig.chordState.getValue(hashFileName, version);
+			System.out.print("hash za folder " + hashFileName);
+			List<File> val = AppConfig.chordState.getValue(hashFileName, version);
 			
 //			if (val == -2) {
 //				AppConfig.timestampedStandardPrint("Please wait...");

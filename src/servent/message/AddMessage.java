@@ -7,13 +7,21 @@ public class AddMessage extends BasicMessage {
 	private final String fileName;
 	private final String content;
 	private final String extension;
+	private final String relativePath;
+	private final boolean isDir;
 
 	public AddMessage(int senderPort, String senderIp, int receiverPort, String receiverIp, int hashFileName,
-			String fileName, String content, String extension) {
+			String fileName, String content, String extension, String relativePath, boolean isDir) {
 		super(MessageType.ADD, senderPort, senderIp, receiverPort, receiverIp, String.valueOf(hashFileName));
 		this.fileName = fileName;
 		this.content = content;
 		this.extension = extension;
+		this.relativePath = relativePath;
+		this.isDir = isDir;
+	}
+	
+	public boolean isDir() {
+		return isDir;
 	}
 
 	public String getFileName() {
@@ -26,6 +34,10 @@ public class AddMessage extends BasicMessage {
 
 	public String getExtension() {
 		return extension;
+	}
+	
+	public String getRelativePath() {
+		return relativePath;
 	}
 	
 	

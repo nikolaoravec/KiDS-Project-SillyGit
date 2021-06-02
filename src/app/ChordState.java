@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -338,20 +339,41 @@ public class ChordState {
 	 * The Chord put operation. Stores locally if key is ours, otherwise sends it
 	 * on.
 	 */
-	public void putValue(int hashFileName, String fileName, String content, String extension) {
+	public void putValue(int hashFileName, String fileName, String content, String extension, String relativePath, boolean isDir) {
 		if (isKeyMine(hashFileName)) {
 
 			if (valueMap.get(hashFileName) != null) {
 				System.out.print("I already have file with name: " + fileName);
 				return;
 			}
+			
+			String storage = AppConfig.STORAGE_PATH + File.separator;
+			if(!isDir) {
+				
+				relativePath = relativePath.replace("\\", "/");
+				String[] splitPath = relativePath.split("/");
+				
+				if(splitPath.length > 1) {
+					for(int i=0; i<splitPath.length-1; i++) {
+						File dir = new File(storage + splitPath[i]);
+						if (!dir.exists()) {
+							dir.mkdir();
+						}
+						System.out.println(storage);
+						storage+= splitPath[i] + File.separator;
+					}
+				}
+			}		
 
-			File newFile = new File(AppConfig.STORAGE_PATH + "/" + fileName + "_0" + extension);
+			File newFile = new File(storage+ fileName + "_0" + extension);
+			
 			try {
 				newFile.createNewFile();
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
+			
+			
 
 			try (BufferedWriter bw = new BufferedWriter(new FileWriter(newFile.getAbsolutePath()))) {
 				bw.write(content);
@@ -368,7 +390,7 @@ public class ChordState {
 			ServentInfo nextNode = getNextNodeForKey(hashFileName);
 			AddMessage pm = new AddMessage(AppConfig.myServentInfo.getListenerPort(),
 					AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
-					hashFileName, fileName, content, extension);
+					hashFileName, fileName, content, extension, relativePath, isDir);
 			MessageUtil.sendMessage(pm);
 		}
 	}
@@ -395,6 +417,11 @@ public class ChordState {
 		return null;
 	}
 
+	
+	public List<File> getFileOrFolderWithHash(int hashname, int version){
+		
+		return null;
+	}
 	/**
 	 * The chord get operation. Gets the value locally if key is ours, otherwise
 	 * asks someone else to give us the value.
@@ -406,27 +433,33 @@ public class ChordState {
 	 *         <li>-2 if we asked someone else</li>
 	 *         </ul>
 	 */
-	public File getValue(int hashFileName, int version) {
+	public List<File> getValue(int hashFileName, int version) {
 		if (isKeyMine(hashFileName)) {
-			File toReturn = null;
+			List<File> toReturn = new ArrayList<>();
 			if (valueMap.containsKey(hashFileName)) {
 				File storage = new File(AppConfig.STORAGE_PATH);
 				File[] files = storage.listFiles();
 				int max = 0;
 				for (int i = 0; i < files.length; i++) {
 					String fileName = getFileName(files[i]);
-					if (chordHash(fileName) == hashFileName) {
-						int tmpVersion = getFileVersion(files[i]);
-						if (version == -1) {
-							if (tmpVersion > max) {
-								max = tmpVersion;
-								toReturn = files[i];
-							}
-						} else {
-							if (version == tmpVersion)
-								toReturn = files[i];
-						}
+					
+					if(files[i].isDirectory() && (chordHash(files[i].getName()) == hashFileName)) {
+						List<File> retList = (List<File>) Arrays.asList(files[i].listFiles()).stream().filter(e -> !e.isDirectory());
+						System.out.print(retList.toString());
+						return retList;
 					}
+//					if (chordHash(fileName) == hashFileName) {
+//						int tmpVersion = getFileVersion(files[i]);
+//						if (version == -1) {
+//							if (tmpVersion > max) {
+//								max = tmpVersion;
+//								toReturn = files[i];
+//							}
+//						} else {
+//							if (version == tmpVersion)
+//								toReturn = files[i];
+//						}
+//					}
 				}
 				return toReturn;
 
@@ -460,6 +493,9 @@ public class ChordState {
 		if (lastIndexOf == -1) {
 			return Integer.parseInt(file.getName().substring(lastIndexOfUderscore + 1, name.length())); // empty
 																										// extension
+		}
+		if(lastIndexOfUderscore == -1) {
+			return -1;
 		}
 		return Integer.parseInt(name.substring(lastIndexOfUderscore + 1, lastIndexOf));
 	}

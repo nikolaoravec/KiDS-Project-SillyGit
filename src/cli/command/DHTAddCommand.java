@@ -27,29 +27,51 @@ public class DHTAddCommand implements CLICommand {
 			try {
 				fileName = splitArgs[0];
 
-				File file = new File(AppConfig.WORK_ROUTE_PATH + "/" + fileName);
+				File file = new File(AppConfig.WORK_ROUTE_PATH);
+				File fileToAdd = findFile(file, fileName);
+				
+				if(fileToAdd != null) {
+					if(fileToAdd.isDirectory()) {
+						
+					//	addDirToValue(fileName, fileName, fileToAdd, fileName, true);
+						Queue<File> toSearch = new LinkedList<>();
 
-				if (file.isDirectory()) {
-					Queue<File> toSearch = new LinkedList<>();
-
-					toSearch.add(file);
-					while (!toSearch.isEmpty()) {
-						File current = toSearch.poll();
-						if (current.isDirectory()) {
-							File[] files = current.listFiles();
-
-							for (int i = 0; i < files.length; i++) {
-								if (files[i].isDirectory()) {
-									toSearch.add(files[i]);
-								} else {
-									addFileToValue(fileName, files[i].getName(), files[i]);
+						toSearch.add(fileToAdd);
+						
+						while (!toSearch.isEmpty()) {
+							File current = toSearch.poll();
+							if (current.isDirectory()) {
+								File[] files = current.listFiles();
+								for (int i = 0; i < files.length; i++) {
+									
+									if(files[i].isDirectory()) {
+										//addDirToValue(files[i].getName(), files[i].getName(), files[i], files[i].getName(), true);
+										toSearch.add(files[i]);
+									}else{
+										String absolutePath1 = files[i].getAbsolutePath();
+									    String absolutePath2 = file.getAbsolutePath() + "\\";
+									    String relativePath = absolutePath1.substring(absolutePath2.length());
+									
+									    addFileToValue(getFileExtension(files[i]), files[i].getName(), files[i], relativePath, false);
+									}
 								}
 							}
 						}
+						
+					}else{
+					    String absolutePath1 = fileToAdd.getAbsolutePath();
+					    String absolutePath2 = file.getAbsolutePath() + "\\";
+					    String relativePath = absolutePath1.substring(absolutePath2.length());
+					  
+					    addFileToValue(fileName, fileToAdd.getName(), fileToAdd, relativePath, false);
 					}
-				} else {
-					addFileToValue(fileName, file.getName(), file);
+				}else {
+					AppConfig.timestampedErrorPrint("I dont' have that file in my workspace");
 				}
+
+			
+				
+				
 
 			} catch (NumberFormatException e) {
 				AppConfig.timestampedErrorPrint("Invalid key and value pair. Both should be ints. 0 <= key <= "
@@ -60,10 +82,51 @@ public class DHTAddCommand implements CLICommand {
 		}
 
 	}
+	
+	
+	public File findFile(File file, String fileName) {
+		Queue<File> toSearch = new LinkedList<>();
 
-	private void addFileToValue(String name, String fileName, File file) {
+		toSearch.add(file);
+		while (!toSearch.isEmpty()) {
+			File current = toSearch.poll();
+			if (current.isDirectory()) {
+				File[] files = current.listFiles();
+
+				for (int i = 0; i < files.length; i++) {
+					
+					if(files[i].getName().equals(fileName)) {
+						return files[i];
+					}
+					
+					if(files[i].isDirectory()) {
+						toSearch.add(files[i]);
+					}
+							
+				}
+			}
+		}
+		return null;
+	}
+	
+	
+	
+	private void addDirToValue(String name, String fileName, File file, String relativePath, boolean isDir) {
 		int hashFileName = ChordState.chordHash(name);
+		System.out.println("name of dir " + name + " hash " + hashFileName);
+		if (hashFileName < 0 || hashFileName >= ChordState.CHORD_SIZE) {
+			throw new NumberFormatException();
+		}
+		if (hashFileName < 0) {
+			throw new NumberFormatException();
+		}
+		AppConfig.chordState.putValue(hashFileName, "", "","","",true);
+		
+	}
 
+	private void addFileToValue(String name, String fileName, File file, String relativePath, boolean isDir) {
+		int hashFileName = ChordState.chordHash(name);
+		System.out.println("name of file " + name + " hash " + hashFileName);
 		if (hashFileName < 0 || hashFileName >= ChordState.CHORD_SIZE) {
 			throw new NumberFormatException();
 		}
@@ -83,13 +146,15 @@ public class DHTAddCommand implements CLICommand {
 				stringBuilder.append(ls);
 			}
 			reader.close();
-			AppConfig.chordState.putValue(hashFileName, getFileWithoutExtension(file), stringBuilder.toString(),
-					getFileExtension(file));
+			AppConfig.chordState.putValue(hashFileName, 
+					getFileWithoutExtension(file), 
+					stringBuilder.toString(),
+					getFileExtension(file),
+					relativePath,
+					isDir);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

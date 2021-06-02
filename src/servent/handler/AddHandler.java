@@ -21,7 +21,8 @@ public class AddHandler implements MessageHandler {
 			try {
 				int hash = Integer.parseInt(addMessage.getMessageText());
 
-				AppConfig.chordState.putValue(hash, addMessage.getFileName(), addMessage.getContent(), addMessage.getExtension());
+				AppConfig.chordState.putValue(hash, addMessage.getFileName(), addMessage.getContent(), 
+						addMessage.getExtension(), addMessage.getRelativePath(), addMessage.isDir());
 			} catch (NumberFormatException e) {
 				AppConfig.timestampedErrorPrint("Got put message with bad text: " + clientMessage.getMessageText());
 			}

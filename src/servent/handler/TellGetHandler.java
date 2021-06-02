@@ -1,8 +1,12 @@
 package servent.handler;
 
+import java.io.File;
+import java.util.List;
+
 import app.AppConfig;
 import servent.message.Message;
 import servent.message.MessageType;
+import servent.message.TellGetMessage;
 
 public class TellGetHandler implements MessageHandler {
 
@@ -15,26 +19,35 @@ public class TellGetHandler implements MessageHandler {
 	@Override
 	public void run() {
 		if (clientMessage.getMessageType() == MessageType.TELL_GET) {
-			String parts[] = clientMessage.getMessageText().split(":");
+			TellGetMessage tellGetMessage = (TellGetMessage) clientMessage;
+			List<File> files = tellGetMessage.getFiles();
+			
+			for(File f : files) {
+				System.out.println(f.getAbsolutePath());
+			}
+			// TREBA DA DODAMO FAJLOVE U NAS WORK ROUTE 
+			
+			
+			
 			// dobicemo pullovane fajlove / foldere
 			// koje treba da smestimo u svoj radni okvir
-			if (parts.length == 2) {
-				try {
-					int key = Integer.parseInt(parts[0]);
-					int value = Integer.parseInt(parts[1]);
-					if (value == -1) {
-						AppConfig.timestampedStandardPrint("No such key: " + key);
-					} else {
-						AppConfig.timestampedStandardPrint(clientMessage.getMessageText());
-					}
-				} catch (NumberFormatException e) {
-					AppConfig.timestampedErrorPrint("Got TELL_GET message with bad text: " + clientMessage.getMessageText());
-				}
-			} else {
-				AppConfig.timestampedErrorPrint("Got TELL_GET message with bad text: " + clientMessage.getMessageText());
-			}
-		} else {
-			AppConfig.timestampedErrorPrint("Tell get handler got a message that is not TELL_GET");
+//			if (parts.length == 2) {
+//				try {
+//					int key = Integer.parseInt(parts[0]);
+//					int value = Integer.parseInt(parts[1]);
+//					if (value == -1) {
+//						AppConfig.timestampedStandardPrint("No such key: " + key);
+//					} else {
+//						AppConfig.timestampedStandardPrint(clientMessage.getMessageText());
+//					}
+//				} catch (NumberFormatException e) {
+//					AppConfig.timestampedErrorPrint("Got TELL_GET message with bad text: " + clientMessage.getMessageText());
+//				}
+//			} else {
+//				AppConfig.timestampedErrorPrint("Got TELL_GET message with bad text: " + clientMessage.getMessageText());
+//			}
+//		} else {
+//			AppConfig.timestampedErrorPrint("Tell get handler got a message that is not TELL_GET");
 		}
 	}
 
