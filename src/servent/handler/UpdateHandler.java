@@ -38,7 +38,7 @@ public class UpdateHandler implements MessageHandler {
 				
 				ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(AppConfig.myServentInfo.getListenerPort(), 
 						AppConfig.myServentInfo.getIpAddress(), 
-						AppConfig.chordState.getNextNodePort(), AppConfig.chordState.getNextNodeIp());
+						AppConfig.chordState.getNextNodePort(), AppConfig.chordState.getNextNodeIp(), AppConfig.chordState.getNextNode().getChordId());
 				
 				MessageUtil.sendMessage(releaseMutexMessage);
 

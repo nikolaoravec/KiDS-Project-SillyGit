@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import app.AppConfig;
+import app.ServentInfo;
 import mutex.TokenMutex;
 import servent.message.Message;
 import servent.message.MessageType;
@@ -28,13 +29,10 @@ public class TellGetHandler implements MessageHandler {
 			if (clientMessage.getMessageType() == MessageType.TELL_GET) {
 
 				TellGetMessage tellGetMessage = (TellGetMessage) clientMessage;
-				if ((AppConfig.myServentInfo.getIpAddress() == tellGetMessage.getReceiverIp())
-						&& (AppConfig.myServentInfo.getListenerPort() == tellGetMessage.getReceiverPort())) {
-					//File file = tellGetMessage.getFile();
 
-					System.out.println(tellGetMessage.getContent());
-					System.out.println(tellGetMessage.getFileName());
-					//System.out.println(tellGetMessage.getContent());
+				int chordId = Integer.parseInt(tellGetMessage.getMessageText());
+
+				if (AppConfig.myServentInfo.getChordId() == chordId) {
 
 					String storage = AppConfig.WORK_ROUTE_PATH + File.separator;
 					File newFile = new File(storage + tellGetMessage.getFileName());
@@ -44,19 +42,19 @@ public class TellGetHandler implements MessageHandler {
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
+					
+					AppConfig.chordState.getFileVersions().put(tellGetMessage.getFileName(), tellGetMessage.getVersionOfFIle());
+					AppConfig.fileConfig.setFileContent(newFile, tellGetMessage.getContent());
+					AppConfig.releaseBothMutex();
+				
+				} else {
+					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
+					TellGetMessage tgm = new TellGetMessage(AppConfig.myServentInfo.getListenerPort(),
+							AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
+							tellGetMessage.getFile(), tellGetMessage.getFileName(), tellGetMessage.getContent(),
+							tellGetMessage.getRelativePath(), chordId, tellGetMessage.getVersionOfFIle());
 
-					try (BufferedWriter bw = new BufferedWriter(new FileWriter(newFile.getAbsolutePath()))) {
-						bw.write(tellGetMessage.getContent());
-						bw.newLine();
-						bw.close();
-					} catch (FileNotFoundException e) {
-						System.out.println("Error : " + e.getMessage());
-					} catch (IOException e) {
-						System.out.println("Error : " + e.getMessage());
-					}
-
-					TokenMutex.unlock();
-					AppConfig.mutex.release();
+					MessageUtil.sendMessage(tgm);
 				}
 			}
 		} catch (Exception e) {

@@ -42,16 +42,7 @@ public class DHTPullCommand implements CLICommand {
 			}
 			int hashFileName = ChordState.chordHash(fileName);
 			AppConfig.chordState.getValue(AppConfig.myServentInfo,hashFileName, version);
-			
-		
-			
-//			if (val == -2) {
-//				AppConfig.timestampedStandardPrint("Please wait...");
-//			} else if (val == -1) {
-//				AppConfig.timestampedStandardPrint("No such key: " + key);
-//			} else {
-//				AppConfig.timestampedStandardPrint(key + ": " + val);
-//			}
+
 		
 	}
 

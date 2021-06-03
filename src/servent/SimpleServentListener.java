@@ -11,6 +11,7 @@ import app.AppConfig;
 import app.Cancellable;
 import mutex.DistributedMutex;
 import servent.handler.AskGetHandler;
+import servent.handler.CommitHandler;
 import servent.handler.MessageHandler;
 import servent.handler.NewNodeHandler;
 import servent.handler.NullHandler;
@@ -94,6 +95,9 @@ public class SimpleServentListener implements Runnable, Cancellable {
 					break;
 				case RELEASE_MUTEX:
 					messageHandler = new ReleaseMutexHandler(clientMessage);
+					break;
+				case COMMIT:
+					messageHandler = new CommitHandler(clientMessage);
 					break;
 				case POISON:
 					break;

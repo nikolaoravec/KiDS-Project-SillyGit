@@ -8,9 +8,9 @@ public class ReleaseMutexMessage extends BasicMessage {
 	
 
 
-	public ReleaseMutexMessage(int senderPort, String senderIp, int receiverPort, String receiverIp) {
+	public ReleaseMutexMessage(int senderPort, String senderIp, int receiverPort, String receiverIp, int chordId) {
 		
-		super(MessageType.RELEASE_MUTEX, senderPort, senderIp, receiverPort, receiverIp);
+		super(MessageType.RELEASE_MUTEX, senderPort, senderIp, receiverPort, receiverIp, String.valueOf(chordId));
 	
 	
 	}

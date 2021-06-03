@@ -28,14 +28,10 @@ public class AddHandler implements MessageHandler {
 			AddMessage addMessage = (AddMessage) clientMessage;
 
 			try {
-				int hash = Integer.parseInt(addMessage.getMessageText());
+				int hash = addMessage.getHashFileName();
+				Integer chordId = Integer.parseInt(addMessage.getMessageText());
 
 				if (AppConfig.chordState.isKeyMine(hash)) {
-
-//					if (valueMap.get(hashFileName) != null) {
-//						System.out.print("I already have file with name: " + fileName);
-//						return;
-//					}
 
 					String storage = AppConfig.STORAGE_PATH + File.separator;
 					if (!addMessage.isDir()) {
@@ -52,7 +48,7 @@ public class AddHandler implements MessageHandler {
 								storage += splitPath[i] + File.separator;
 							}
 						}
-						File newFile = new File(storage + addMessage.getFileName()+ "_0" + addMessage.getExtension());
+						File newFile = new File(storage + addMessage.getFileName() + "_0" + addMessage.getExtension());
 
 						try {
 							newFile.createNewFile();
@@ -70,7 +66,6 @@ public class AddHandler implements MessageHandler {
 							System.out.println("Error BW: " + e.getMessage());
 						}
 
-						
 					} else {
 
 						String relativePath = addMessage.getRelativePath().replace("\\", "/");
@@ -84,26 +79,27 @@ public class AddHandler implements MessageHandler {
 
 						AppConfig.chordState.getValueMap().put(hash, newFile);
 
-//						ArrayList<Integer> childrenHash = new ArrayList<>();
-//
-//						for (String child : children) {
-//							childrenHash.add(chordHash(child));
-//						}
-//
-//						childrenHashes.put(hashFileName, childrenHash);
+						// ArrayList<Integer> childrenHash = new ArrayList<>();
+						//
+						// for (String child : children) {
+						// childrenHash.add(chordHash(child));
+						// }
+						//
+						// childrenHashes.put(hashFileName, childrenHash);
 					}
-
-					ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(AppConfig.myServentInfo.getListenerPort(),
-							AppConfig.myServentInfo.getIpAddress(), addMessage.getSenderPort(), addMessage.getSenderIp());
+					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
+					ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(
+							AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
+							 nextNode.getListenerPort(), nextNode.getIpAddress(), chordId);
 
 					MessageUtil.sendMessage(releaseMutexMessage);
 
 				} else {
 					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(hash);
-					AddMessage pm = new AddMessage(addMessage.getSenderPort(),
-							addMessage.getSenderIp(), nextNode.getListenerPort(), nextNode.getIpAddress(),
-							hash, addMessage.getFileName(), addMessage.getContent(), addMessage.getExtension(), 
-							addMessage.getRelativePath(), addMessage.isDir(), addMessage.getChildren());
+					AddMessage pm = new AddMessage(AppConfig.myServentInfo.getListenerPort(),
+							AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
+							hash, addMessage.getFileName(), addMessage.getContent(), addMessage.getExtension(),
+							addMessage.getRelativePath(), addMessage.isDir(), addMessage.getChildren(), chordId);
 					MessageUtil.sendMessage(pm);
 				}
 			} catch (NumberFormatException e) {

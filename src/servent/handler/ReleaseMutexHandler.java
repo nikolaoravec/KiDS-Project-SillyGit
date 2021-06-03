@@ -1,6 +1,7 @@
 package servent.handler;
 
 import app.AppConfig;
+import app.ServentInfo;
 import mutex.TokenMutex;
 import servent.message.Message;
 import servent.message.MessageType;
@@ -20,15 +21,16 @@ public class ReleaseMutexHandler implements MessageHandler {
 		try {
 			if (clientMessage.getMessageType() == MessageType.RELEASE_MUTEX) {
 				ReleaseMutexMessage releaseMutexMessage = (ReleaseMutexMessage) clientMessage;
-				if (releaseMutexMessage.getReceiverIp().equals(AppConfig.myServentInfo.getIpAddress())
-						&& releaseMutexMessage.getReceiverPort() == AppConfig.myServentInfo.getListenerPort()) {
+				int chordId = Integer.parseInt(releaseMutexMessage.getMessageText());
+				if (AppConfig.myServentInfo.getChordId() == chordId) {
 					TokenMutex.unlock();
 					AppConfig.mutex.release();
 					System.out.println("Izasao sam iz LOCK!!");
 				} else {
+					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
 					ReleaseMutexMessage rmm = new ReleaseMutexMessage(AppConfig.myServentInfo.getListenerPort(),
-							AppConfig.myServentInfo.getIpAddress(), AppConfig.chordState.getNextNodePort(),
-							AppConfig.chordState.getNextNodeIp());
+							AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
+							chordId);
 
 					MessageUtil.sendMessage(rmm);
 				}

@@ -13,14 +13,20 @@ public class TellGetMessage extends BasicMessage {
 	private final String fileName;
 	private final String content;
 	private final String relativePath;
+	private final int versionOfFIle;
 
 	public TellGetMessage(int senderPort, String senderIp, int receiverPort, String receiverIp, File file,
-			String fileName, String content, String relativePath) {
-		super(MessageType.TELL_GET, senderPort, senderIp, receiverPort, receiverIp, "");
+			String fileName, String content, String relativePath, int chordId, int versionOfFIle) {
+		super(MessageType.TELL_GET, senderPort, senderIp, receiverPort, receiverIp, String.valueOf(chordId));
 		this.fileName = fileName;
 		this.content = content;
 		this.relativePath = relativePath;
 		this.file = file;
+		this.versionOfFIle = versionOfFIle;
+	}
+	
+	public int getVersionOfFIle() {
+		return versionOfFIle;
 	}
 
 	public String getFileName() {
