@@ -1,2 +1,50 @@
-17:43:04 - Starting servent [6|"localhost"|1200]
-17:43:04 - Pausing for 40000 ms
+14:47:09 - Starting servent [118|localhost|1400]
+14:47:09 - Pausing for 20000 ms
+14:47:10 - Sending message [118|1400|0||NEW_NODE|1181|64]
+14:47:11 - Got message [64|1181|0||WELCOME|1400|118]
+14:47:12 - Sending message [118|1400|1||UPDATE|1181|64]
+14:47:12 - Got message [118|1400|1|localhost:1181|UPDATE|1400|118]
+All node info [[64|localhost|1181]]
+14:47:13 - Sending message [118|1400|2||RELEASE_MUTEX|1181|64]
+14:47:14 - Got message [64|1181|2||TOKEN|1400|118]
+14:47:15 - Sending message [118|1400|3||TOKEN|1181|64]
+14:47:16 - Got message [64|1181|3||TOKEN|1400|118]
+14:47:17 - Sending message [118|1400|4||TOKEN|1181|64]
+14:47:18 - Got message [64|1181|4||TOKEN|1400|118]
+14:47:19 - Sending message [118|1400|5||TOKEN|1181|64]
+14:47:20 - Got message [44|1611|0||NEW_NODE|1400|118]
+ubacujem key 44 predecesor 64 ja sam 118
+ubacujem key 44 predecesor 64 ja sam 118
+14:47:21 - Got message [64|1181|5||TOKEN|1400|118]
+14:47:21 - Sending message [44|1611|6||NEW_NODE|1181|64]
+14:47:22 - Sending message [118|1400|7||TOKEN|1181|64]
+14:47:24 - Got message [44|1611|7|localhost:1181|UPDATE|1400|118]
+All node info [[44|localhost|1611], [64|localhost|1181]]
+14:47:25 - Sending message [44|1611|8|localhost:1181,localhost:1400|UPDATE|1611|44]
+14:47:27 - Got message [64|1181|8||TOKEN|1400|118]
+14:47:29 - Sending message [118|1400|9||TOKEN|1611|44]
+14:47:31 - Got message [64|1181|9|35|ADD|1400|118]
+ubacujem key 35 predecesor 64 ja sam 118
+ubacujem key 35 predecesor 64 ja sam 118
+14:47:31 - Sending message [118|1400|10|35|ADD|1611|44]
+14:47:32 - Got message [80|1945|10||NEW_NODE|1400|118]
+ubacujem key 80 predecesor 64 ja sam 118
+14:47:34 - Got message [64|1181|11||TOKEN|1400|118]
+ubacujem key 80 predecesor 64 ja sam 118
+Uzeo sam lock u New node handleru
+14:47:35 - Sending message [118|1400|11||WELCOME|1945|80]
+14:47:36 - Got message [80|1945|1||UPDATE|1400|118]
+All node info [[44|localhost|1611], [64|localhost|1181], [80|localhost|1945]]
+14:47:37 - Sending message [80|1945|12|localhost:1400|UPDATE|1611|44]
+14:47:41 - Got message [80|1945|2||RELEASE_MUTEX|1400|118]
+Izasao sam iz LOCK!!
+usao sam u pull komandu
+ubacujem key 108 predecesor 80 ja sam 118
+14:47:41 - Pausing for 20000 ms
+14:47:41 - Got message [112|1802|3||NEW_NODE|1400|118]
+ubacujem key 112 predecesor 80 ja sam 118
+14:47:42 - Sending message [118|1400|13||TOKEN|1611|44]
+14:47:45 - Got message [80|1945|4|108|ADD|1400|118]
+ubacujem key 108 predecesor 80 ja sam 118
+14:47:47 - Sending message [118|1400|14||RELEASE_MUTEX|1611|44]
+14:47:50 - Got message [80|1945|5||TOKEN|1400|118]

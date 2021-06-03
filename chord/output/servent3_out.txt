@@ -1,2 +1,20 @@
-17:43:24 - Starting servent [-56|"localhost"|1400]
-17:43:24 - Pausing for 20000 ms
+14:47:28 - Starting servent [80|localhost|1945]
+14:47:30 - Sending message [80|1945|0||NEW_NODE|1611|44]
+14:47:35 - Got message [118|1400|11||WELCOME|1945|80]
+14:47:36 - Sending message [80|1945|1||UPDATE|1400|118]
+14:47:39 - Got message [80|1945|12|localhost:1400,localhost:1611,localhost:1181|UPDATE|1945|80]
+All node info [[118|localhost|1400], [44|localhost|1611], [64|localhost|1181]]
+14:47:40 - Got message [112|1802|7||NEW_NODE|1945|80]
+ubacujem key 112 predecesor 64 ja sam 80
+ubacujem key 112 predecesor 64 ja sam 80
+14:47:41 - Sending message [80|1945|2||RELEASE_MUTEX|1400|118]
+14:47:41 - Sending message [112|1802|3||NEW_NODE|1400|118]
+14:47:45 - Got message [64|1181|13||TOKEN|1945|80]
+Uzeo sam lock u Add komandi
+ubacujem key 108 predecesor 64 ja sam 80
+ubacujem key 108 predecesor 64 ja sam 80
+14:47:45 - Pausing for 45000 ms
+14:47:45 - Sending message [80|1945|4|108|ADD|1400|118]
+14:47:49 - Got message [64|1181|14||RELEASE_MUTEX|1945|80]
+Izasao sam iz LOCK!!
+14:47:50 - Sending message [80|1945|5||TOKEN|1400|118]

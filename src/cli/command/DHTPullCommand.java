@@ -1,11 +1,9 @@
 package cli.command;
 
 
-import java.io.File;
-import java.util.List;
-
 import app.AppConfig;
 import app.ChordState;
+import mutex.TokenMutex;
 
 public class DHTPullCommand implements CLICommand {
 
@@ -17,6 +15,13 @@ public class DHTPullCommand implements CLICommand {
 	@Override
 	public void execute(String args) {
 		
+			try {
+				AppConfig.mutex.acquire();
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
+			TokenMutex.lock();
+			System.out.println("usao sam u pull komandu");
 			String[] splitArgs = args.split(" ");
 			String fileName = "";
 			int version = -1;
@@ -36,8 +41,9 @@ public class DHTPullCommand implements CLICommand {
 				
 			}
 			int hashFileName = ChordState.chordHash(fileName);
-			System.out.print("hash za folder " + hashFileName);
-			List<File> val = AppConfig.chordState.getValue(hashFileName, version);
+			AppConfig.chordState.getValue(AppConfig.myServentInfo,hashFileName, version);
+			
+		
 			
 //			if (val == -2) {
 //				AppConfig.timestampedStandardPrint("Please wait...");

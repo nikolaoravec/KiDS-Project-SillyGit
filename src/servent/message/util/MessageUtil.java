@@ -6,6 +6,7 @@ import java.net.Socket;
 
 import app.AppConfig;
 import servent.message.Message;
+import servent.message.MessageType;
 
 /**
  * For now, just the read and send implementation, based on Java serializing.
@@ -44,7 +45,7 @@ public class MessageUtil {
 			e.printStackTrace();
 		}
 		
-		if (MESSAGE_UTIL_PRINTING) {
+		if (MESSAGE_UTIL_PRINTING && clientMessage.getMessageType() != MessageType.TOKEN) {
 			AppConfig.timestampedStandardPrint("Got message " + clientMessage);
 		}
 				

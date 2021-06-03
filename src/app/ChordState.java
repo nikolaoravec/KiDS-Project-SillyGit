@@ -17,8 +17,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import mutex.TokenMutex;
 import servent.message.AddMessage;
 import servent.message.AskGetMessage;
+import servent.message.ReleaseMutexMessage;
+import servent.message.TellGetMessage;
 import servent.message.WelcomeMessage;
 import servent.message.util.MessageUtil;
 
@@ -72,9 +75,7 @@ public class ChordState {
 	private List<ServentInfo> allNodeInfo;
 
 	private Map<Integer, File> valueMap;
-	
-	
-	
+	private Map<Integer, List<Integer>> childrenHashes;
 
 	public ChordState() {
 		this.chordLevel = 1;
@@ -91,9 +92,9 @@ public class ChordState {
 		for (int i = 0; i < chordLevel; i++) {
 			successorTable[i] = null;
 		}
-
 		predecessorInfo = null;
 		valueMap = new HashMap<>();
+		childrenHashes = new HashMap<>();
 		allNodeInfo = new ArrayList<>();
 	}
 
@@ -105,7 +106,9 @@ public class ChordState {
 	public void init(WelcomeMessage welcomeMsg) {
 		// set a temporary pointer to next node, for sending of update message
 		successorTable[0] = new ServentInfo(welcomeMsg.getSenderIp(), welcomeMsg.getSenderPort());
+		// System.out.println(childrenHashes.toString());
 		this.valueMap = welcomeMsg.getValues();
+		this.childrenHashes = welcomeMsg.getChildrenHashes();
 
 		// tell bootstrap this node is not a collider
 		try {
@@ -124,6 +127,14 @@ public class ChordState {
 		}
 	}
 
+	public Map<Integer, List<Integer>> getChildrenHashes() {
+		return childrenHashes;
+	}
+
+	public void setChildrenHashes(Map<Integer, List<Integer>> childrenHashes) {
+		this.childrenHashes = childrenHashes;
+	}
+
 	public int getChordLevel() {
 		return chordLevel;
 	}
@@ -132,7 +143,13 @@ public class ChordState {
 		return successorTable;
 	}
 
-	public int getNextNodePort() {
+	public ServentInfo getNextNode() {
+		return successorTable[0];
+	}
+
+	public Integer getNextNodePort() {
+		if (successorTable[0] == null)
+			return null;
 		return successorTable[0].getListenerPort();
 	}
 
@@ -173,12 +190,13 @@ public class ChordState {
 	 */
 	public boolean isKeyMine(int key) {
 		if (predecessorInfo == null) {
+			System.out.println("NULL");
 			return true;
 		}
 
 		int predecessorChordId = predecessorInfo.getChordId();
 		int myChordId = AppConfig.myServentInfo.getChordId();
-
+		System.out.println("ubacujem key " + key + " predecesor " + predecessorChordId + " ja sam " + myChordId);
 		if (predecessorChordId < myChordId) { // no overflow
 			if (key <= myChordId && key > predecessorChordId) {
 				return true;
@@ -326,6 +344,7 @@ public class ChordState {
 		allNodeInfo.clear();
 		allNodeInfo.addAll(newList);
 		allNodeInfo.addAll(newList2);
+		System.out.println("All node info " + allNodeInfo.toString());
 		if (newList2.size() > 0) {
 			predecessorInfo = newList2.get(newList2.size() - 1);
 		} else {
@@ -339,63 +358,209 @@ public class ChordState {
 	 * The Chord put operation. Stores locally if key is ours, otherwise sends it
 	 * on.
 	 */
-	public void putValue(int hashFileName, String fileName, String content, String extension, String relativePath, boolean isDir) {
+	public void putValue(int hashFileName, String fileName, String content, String extension,
+			String relativePath, boolean isDir, ArrayList<String> children) {
+
 		if (isKeyMine(hashFileName)) {
 
-			if (valueMap.get(hashFileName) != null) {
-				System.out.print("I already have file with name: " + fileName);
-				return;
-			}
-			
+//			if (valueMap.get(hashFileName) != null) {
+//				System.out.print("I already have file with name: " + fileName);
+//				return;
+//			}
+
 			String storage = AppConfig.STORAGE_PATH + File.separator;
-			if(!isDir) {
-				
+			if (!isDir) {
+
 				relativePath = relativePath.replace("\\", "/");
 				String[] splitPath = relativePath.split("/");
-				
-				if(splitPath.length > 1) {
-					for(int i=0; i<splitPath.length-1; i++) {
+
+				if (splitPath.length > 1) {
+					for (int i = 0; i < splitPath.length - 1; i++) {
 						File dir = new File(storage + splitPath[i]);
 						if (!dir.exists()) {
 							dir.mkdir();
 						}
-						System.out.println(storage);
-						storage+= splitPath[i] + File.separator;
+						storage += splitPath[i] + File.separator;
 					}
 				}
-			}		
+				File newFile = new File(storage + fileName + "_0" + extension);
 
-			File newFile = new File(storage+ fileName + "_0" + extension);
-			
-			try {
-				newFile.createNewFile();
-			} catch (IOException e1) {
-				e1.printStackTrace();
+				try {
+					newFile.createNewFile();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+
+				try (BufferedWriter bw = new BufferedWriter(new FileWriter(newFile.getAbsolutePath()))) {
+					bw.write(content);
+					bw.newLine();
+					bw.close();
+				} catch (FileNotFoundException e) {
+					System.out.println("Error BR: " + e.getMessage());
+				} catch (IOException e) {
+					System.out.println("Error BW: " + e.getMessage());
+				}
+
+				valueMap.put(hashFileName, newFile);
+			} else {
+
+				System.out.println("hocu da napravim dir " + relativePath);
+				relativePath = relativePath.replace("\\", "/");
+				String[] splitPath = relativePath.split("/");
+
+				File newFile = new File(storage + splitPath[splitPath.length - 1]);
+
+				if (!newFile.exists()) {
+					newFile.mkdir();
+				}
+
+				valueMap.put(hashFileName, newFile);
+
+				ArrayList<Integer> childrenHash = new ArrayList<>();
+
+				for (String child : children) {
+					childrenHash.add(chordHash(child));
+				}
+
+				childrenHashes.put(hashFileName, childrenHash);
 			}
-			
-			
 
-			try (BufferedWriter bw = new BufferedWriter(new FileWriter(newFile.getAbsolutePath()))) {
-				bw.write(content);
-				bw.newLine();
-				bw.close();
-			} catch (FileNotFoundException e) {
-				System.out.println("Error BR: " + e.getMessage());
-			} catch (IOException e) {
-				System.out.println("Error BW: " + e.getMessage());
-			}
+			TokenMutex.unlock();
+			AppConfig.mutex.release();
 
-			valueMap.put(hashFileName, newFile);
 		} else {
 			ServentInfo nextNode = getNextNodeForKey(hashFileName);
 			AddMessage pm = new AddMessage(AppConfig.myServentInfo.getListenerPort(),
 					AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
-					hashFileName, fileName, content, extension, relativePath, isDir);
+					hashFileName, fileName, content, extension, relativePath, isDir, children);
 			MessageUtil.sendMessage(pm);
 		}
 	}
 
-	private String getFileContent(String fileName, File file) {
+//	private String getFileContent(String fileName, File file) {
+//		BufferedReader reader;
+//		try {
+//			reader = new BufferedReader(new FileReader(file.getAbsolutePath()));
+//			String line = null;
+//			StringBuilder stringBuilder = new StringBuilder();
+//			String ls = System.getProperty("line.separator");
+//
+//			while ((line = reader.readLine()) != null) {
+//				stringBuilder.append(line);
+//				stringBuilder.append(ls);
+//			}
+//			reader.close();
+//			return stringBuilder.toString();
+//		} catch (FileNotFoundException e) {
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		return null;
+//	}
+
+	public List<File> getFileOrFolderWithHash(int hashname, int version) {
+
+		return null;
+	}
+
+	public void getValue(ServentInfo target, int hash, int version) {
+		File toReturn = null;
+		String relativeGLobal = "";
+		if (AppConfig.chordState.isKeyMine(hash)) {
+
+			if (valueMap.containsKey(hash)) {
+				
+				File storage = new File(AppConfig.STORAGE_PATH);
+				File[] files = storage.listFiles();
+				System.out.println(files.toString());
+				int max = 0;
+				for (int i = 0; i < files.length; i++) {
+
+					// String fileName = getFileName(files[i]);
+					String absolutePath1 = getFileNameWithoutVersion(files[i]);
+
+					// System.out.println("abs putanja ya fajl u storidxzu " + absolutePath1);
+					String absolutePath2 = storage.getAbsolutePath() + "\\";
+
+					if (absolutePath2.length() < absolutePath1.length()) {
+						String relative = absolutePath1.substring(absolutePath2.length());
+
+						// System.out.println("relativna putanja ya fajl u storidxzu " + relative);
+
+						if (ChordState.chordHash(relative) == hash) {
+
+							if (!files[i].isDirectory()) {
+								if (version == -1) {
+									int versionOfFile = getFileVersion(files[i]);
+									System.out.println("verzija fajla " + versionOfFile);
+									if (versionOfFile > max) {
+										max = versionOfFile;
+										toReturn = files[i];
+										relativeGLobal = relative;
+									}
+								} else {
+									int versionOfFile = getFileVersion(files[i]);
+									if (versionOfFile == version) {
+										toReturn = files[i];
+										relativeGLobal = relative;
+									}
+								}
+							} else {
+								// ako pulujemo direktorijum
+							}
+
+						}
+					}
+				}
+				System.out.println(toReturn.getAbsolutePath());
+				System.out.println("usao sam u get value");
+				if (toReturn != null) {
+					TellGetMessage tellGetMessage = new TellGetMessage(AppConfig.myServentInfo.getListenerPort(),
+							AppConfig.myServentInfo.getIpAddress(), AppConfig.chordState.getNextNodePort(),
+							AppConfig.chordState.getNextNodeIp(), toReturn, toReturn.getName(),
+							getFileContent(toReturn), relativeGLobal);
+
+					MessageUtil.sendMessage(tellGetMessage);
+				}else {
+					System.out.println("Fajl nije pronadjen");
+				}
+			}
+		} else {
+
+			ServentInfo nextNode = getNextNodeForKey(hash);
+			AskGetMessage agm = new AskGetMessage(AppConfig.myServentInfo.getListenerPort(),
+					AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
+					String.valueOf(hash + "," + version));
+			MessageUtil.sendMessage(agm);
+
+		}
+	}
+
+	private String getFileNameWithoutVersion(File file) {
+		String name = file.getAbsolutePath();
+		int lastIndexOfUderscore = name.lastIndexOf("_");
+		if (lastIndexOfUderscore == -1) {
+			return name.substring(0, name.length());
+		}
+		return name.substring(0, lastIndexOfUderscore);
+	}
+
+	private Integer getFileVersion(File file) {
+		String name = file.getAbsolutePath();
+		int lastIndexOf = name.lastIndexOf(".");
+		int lastIndexOfUderscore = name.lastIndexOf("_");
+		if (lastIndexOf == -1) {
+			return Integer.parseInt(name.substring(lastIndexOfUderscore + 1, name.length()));
+
+		}
+		if (lastIndexOfUderscore == -1) {
+			return -1;
+		}
+		return Integer.parseInt(name.substring(lastIndexOfUderscore + 1, lastIndexOf));
+	}
+
+	public String getFileContent(File file) {
 		BufferedReader reader;
 		try {
 			reader = new BufferedReader(new FileReader(file.getAbsolutePath()));
@@ -407,97 +572,11 @@ public class ChordState {
 				stringBuilder.append(line);
 				stringBuilder.append(ls);
 			}
-			reader.close();
 			return stringBuilder.toString();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return null;
-	}
-
-	
-	public List<File> getFileOrFolderWithHash(int hashname, int version){
-		
-		return null;
-	}
-	/**
-	 * The chord get operation. Gets the value locally if key is ours, otherwise
-	 * asks someone else to give us the value.
-	 * 
-	 * @return
-	 *         <ul>
-	 *         <li>The value, if we have it</li>
-	 *         <li>-1 if we own the key, but there is nothing there</li>
-	 *         <li>-2 if we asked someone else</li>
-	 *         </ul>
-	 */
-	public List<File> getValue(int hashFileName, int version) {
-		if (isKeyMine(hashFileName)) {
-			List<File> toReturn = new ArrayList<>();
-			if (valueMap.containsKey(hashFileName)) {
-				File storage = new File(AppConfig.STORAGE_PATH);
-				File[] files = storage.listFiles();
-				int max = 0;
-				for (int i = 0; i < files.length; i++) {
-					String fileName = getFileName(files[i]);
-					
-					if(files[i].isDirectory() && (chordHash(files[i].getName()) == hashFileName)) {
-						List<File> retList = (List<File>) Arrays.asList(files[i].listFiles()).stream().filter(e -> !e.isDirectory());
-						System.out.print(retList.toString());
-						return retList;
-					}
-//					if (chordHash(fileName) == hashFileName) {
-//						int tmpVersion = getFileVersion(files[i]);
-//						if (version == -1) {
-//							if (tmpVersion > max) {
-//								max = tmpVersion;
-//								toReturn = files[i];
-//							}
-//						} else {
-//							if (version == tmpVersion)
-//								toReturn = files[i];
-//						}
-//					}
-				}
-				return toReturn;
-
-			} else {
-				return null;
-			}
-		}
-
-		ServentInfo nextNode = getNextNodeForKey(hashFileName);
-		AskGetMessage agm = new AskGetMessage(AppConfig.myServentInfo.getListenerPort(),
-				AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
-				String.valueOf(hashFileName+","+version));
-		MessageUtil.sendMessage(agm);
-
-		return null;
-	}
-
-	private String getFileName(File file) {
-		String name = file.getName();
-		int lastIndexOf = name.lastIndexOf(".");
-		if (lastIndexOf == -1) {
-			return file.getName().substring(0, name.length() - 2); // empty extension
-		}
-		return name.substring(0, lastIndexOf - 2);
-	}
-
-	private Integer getFileVersion(File file) {
-		String name = file.getName();
-		int lastIndexOf = name.lastIndexOf(".");
-		int lastIndexOfUderscore = name.lastIndexOf("_");
-		if (lastIndexOf == -1) {
-			return Integer.parseInt(file.getName().substring(lastIndexOfUderscore + 1, name.length())); // empty
-																										// extension
-		}
-		if(lastIndexOfUderscore == -1) {
-			return -1;
-		}
-		return Integer.parseInt(name.substring(lastIndexOfUderscore + 1, lastIndexOf));
+		return "";
 	}
 
 }

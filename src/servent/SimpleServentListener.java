@@ -9,13 +9,16 @@ import java.util.concurrent.Executors;
 
 import app.AppConfig;
 import app.Cancellable;
+import mutex.DistributedMutex;
 import servent.handler.AskGetHandler;
 import servent.handler.MessageHandler;
 import servent.handler.NewNodeHandler;
 import servent.handler.NullHandler;
+import servent.handler.ReleaseMutexHandler;
 import servent.handler.AddHandler;
 import servent.handler.SorryHandler;
 import servent.handler.TellGetHandler;
+import servent.handler.TokenHandler;
 import servent.handler.UpdateHandler;
 import servent.handler.WelcomeHandler;
 import servent.message.Message;
@@ -26,7 +29,6 @@ public class SimpleServentListener implements Runnable, Cancellable {
 	private volatile boolean working = true;
 	
 	public SimpleServentListener() {
-		
 	}
 
 	/*
@@ -86,6 +88,12 @@ public class SimpleServentListener implements Runnable, Cancellable {
 					break;
 				case TELL_GET:
 					messageHandler = new TellGetHandler(clientMessage);
+					break;
+				case TOKEN:
+					messageHandler = new TokenHandler(clientMessage);
+					break;
+				case RELEASE_MUTEX:
+					messageHandler = new ReleaseMutexHandler(clientMessage);
 					break;
 				case POISON:
 					break;

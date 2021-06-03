@@ -7,6 +7,7 @@ import app.AppConfig;
 import app.ServentInfo;
 import servent.message.Message;
 import servent.message.MessageType;
+import servent.message.ReleaseMutexMessage;
 import servent.message.UpdateMessage;
 import servent.message.util.MessageUtil;
 
@@ -30,9 +31,16 @@ public class UpdateHandler implements MessageHandler {
 				List<ServentInfo> allNodes = new ArrayList<>();
 				for (String info : serventsInfo) {
 					String[] ipAndPort = info.split(":");
+					//ipAndPort[0] = "localhost";
 					allNodes.add(new ServentInfo(ipAndPort[0], Integer.parseInt(ipAndPort[1])));
 				}
 				AppConfig.chordState.addNodes(allNodes);
+				
+				ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(AppConfig.myServentInfo.getListenerPort(), 
+						AppConfig.myServentInfo.getIpAddress(), 
+						AppConfig.chordState.getNextNodePort(), AppConfig.chordState.getNextNodeIp());
+				
+				MessageUtil.sendMessage(releaseMutexMessage);
 
 			} else {
 				ServentInfo newNodeInfo = new ServentInfo(clientMessage.getSenderIp(), clientMessage.getSenderPort());
@@ -41,8 +49,10 @@ public class UpdateHandler implements MessageHandler {
 
 				AppConfig.chordState.addNodes(newNodes);
 				String newMessageText = "";
+				
 				if (clientMessage.getMessageText().equals("")) {
-					newMessageText = String.valueOf(AppConfig.myServentInfo.getListenerPort());
+					newMessageText = String.valueOf(AppConfig.myServentInfo.getIpAddress() + ":"
+							+ AppConfig.myServentInfo.getListenerPort());
 				} else {
 					newMessageText = clientMessage.getMessageText() + "," + AppConfig.myServentInfo.getIpAddress() + ":"
 							+ AppConfig.myServentInfo.getListenerPort();

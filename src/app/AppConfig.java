@@ -7,6 +7,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
+import java.util.concurrent.Semaphore;
 
 /**
  * This class contains all the global application configuration stuff.
@@ -20,6 +21,7 @@ public class AppConfig {
 	 * Convenience access for this servent's information
 	 */
 	public static ServentInfo myServentInfo;
+	public static Semaphore mutex = new Semaphore(1);
 
 	/**
 	 * Print a message to stdout with a timestamp

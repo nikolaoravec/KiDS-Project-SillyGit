@@ -1,2 +1,52 @@
-17:42:54 - Starting servent [-59|"localhost"|1100]
-17:42:54 - Pausing for 50000 ms
+14:46:58 - Starting servent [64|localhost|1181]
+14:46:58 - Pausing for 30000 ms
+14:46:58 - First node in Chord system.
+14:47:10 - Got message [118|1400|0||NEW_NODE|1181|64]
+NULL
+NULL
+Uzeo sam lock u New node handleru
+14:47:11 - Sending message [64|1181|0||WELCOME|1400|118]
+14:47:12 - Got message [118|1400|1||UPDATE|1181|64]
+All node info [[118|localhost|1400]]
+14:47:12 - Sending message [118|1400|1|localhost:1181|UPDATE|1400|118]
+14:47:13 - Got message [118|1400|2||RELEASE_MUTEX|1181|64]
+Izasao sam iz LOCK!!
+14:47:14 - Sending message [64|1181|2||TOKEN|1400|118]
+14:47:15 - Got message [118|1400|3||TOKEN|1181|64]
+14:47:16 - Sending message [64|1181|3||TOKEN|1400|118]
+14:47:17 - Got message [118|1400|4||TOKEN|1181|64]
+14:47:18 - Sending message [64|1181|4||TOKEN|1400|118]
+14:47:19 - Got message [118|1400|5||TOKEN|1181|64]
+14:47:21 - Sending message [64|1181|5||TOKEN|1400|118]
+14:47:21 - Got message [44|1611|6||NEW_NODE|1181|64]
+ubacujem key 44 predecesor 118 ja sam 64
+14:47:22 - Got message [118|1400|7||TOKEN|1181|64]
+ubacujem key 44 predecesor 118 ja sam 64
+Uzeo sam lock u New node handleru
+14:47:22 - Sending message [64|1181|6||WELCOME|1611|44]
+14:47:23 - Got message [44|1611|1||UPDATE|1181|64]
+All node info [[118|localhost|1400], [44|localhost|1611]]
+14:47:24 - Sending message [44|1611|7|localhost:1181|UPDATE|1400|118]
+14:47:26 - Got message [44|1611|2||RELEASE_MUTEX|1181|64]
+Izasao sam iz LOCK!!
+14:47:27 - Sending message [64|1181|8||TOKEN|1400|118]
+14:47:29 - Got message [44|1611|3||TOKEN|1181|64]
+Uzeo sam lock u Add komandi
+ubacujem key 35 predecesor 44 ja sam 64
+ubacujem key 35 predecesor 44 ja sam 64
+14:47:29 - Pausing for 30000 ms
+14:47:31 - Sending message [64|1181|9|35|ADD|1400|118]
+14:47:31 - Got message [80|1945|4||NEW_NODE|1181|64]
+ubacujem key 80 predecesor 44 ja sam 64
+ubacujem key 80 predecesor 44 ja sam 64
+14:47:32 - Sending message [80|1945|10||NEW_NODE|1400|118]
+14:47:33 - Got message [44|1611|5||RELEASE_MUTEX|1181|64]
+Izasao sam iz LOCK!!
+14:47:34 - Sending message [64|1181|11||TOKEN|1400|118]
+14:47:38 - Got message [80|1945|6|localhost:1400,localhost:1611|UPDATE|1181|64]
+All node info [[80|localhost|1945], [118|localhost|1400], [44|localhost|1611]]
+14:47:39 - Sending message [80|1945|12|localhost:1400,localhost:1611,localhost:1181|UPDATE|1945|80]
+14:47:43 - Got message [44|1611|8||TOKEN|1181|64]
+14:47:45 - Sending message [64|1181|13||TOKEN|1945|80]
+14:47:48 - Got message [44|1611|9||RELEASE_MUTEX|1181|64]
+14:47:49 - Sending message [64|1181|14||RELEASE_MUTEX|1945|80]

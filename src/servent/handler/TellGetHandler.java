@@ -1,54 +1,68 @@
 package servent.handler;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.util.List;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import app.AppConfig;
+import mutex.TokenMutex;
 import servent.message.Message;
 import servent.message.MessageType;
 import servent.message.TellGetMessage;
+import servent.message.util.MessageUtil;
 
 public class TellGetHandler implements MessageHandler {
 
 	private Message clientMessage;
-	
+
 	public TellGetHandler(Message clientMessage) {
 		this.clientMessage = clientMessage;
 	}
-	
+
 	@Override
 	public void run() {
-		if (clientMessage.getMessageType() == MessageType.TELL_GET) {
-			TellGetMessage tellGetMessage = (TellGetMessage) clientMessage;
-			List<File> files = tellGetMessage.getFiles();
-			
-			for(File f : files) {
-				System.out.println(f.getAbsolutePath());
+		try {
+
+			if (clientMessage.getMessageType() == MessageType.TELL_GET) {
+
+				TellGetMessage tellGetMessage = (TellGetMessage) clientMessage;
+				if ((AppConfig.myServentInfo.getIpAddress() == tellGetMessage.getReceiverIp())
+						&& (AppConfig.myServentInfo.getListenerPort() == tellGetMessage.getReceiverPort())) {
+					//File file = tellGetMessage.getFile();
+
+					System.out.println(tellGetMessage.getContent());
+					System.out.println(tellGetMessage.getFileName());
+					//System.out.println(tellGetMessage.getContent());
+
+					String storage = AppConfig.WORK_ROUTE_PATH + File.separator;
+					File newFile = new File(storage + tellGetMessage.getFileName());
+
+					try {
+						newFile.createNewFile();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+
+					try (BufferedWriter bw = new BufferedWriter(new FileWriter(newFile.getAbsolutePath()))) {
+						bw.write(tellGetMessage.getContent());
+						bw.newLine();
+						bw.close();
+					} catch (FileNotFoundException e) {
+						System.out.println("Error : " + e.getMessage());
+					} catch (IOException e) {
+						System.out.println("Error : " + e.getMessage());
+					}
+
+					TokenMutex.unlock();
+					AppConfig.mutex.release();
+				}
 			}
-			// TREBA DA DODAMO FAJLOVE U NAS WORK ROUTE 
-			
-			
-			
-			// dobicemo pullovane fajlove / foldere
-			// koje treba da smestimo u svoj radni okvir
-//			if (parts.length == 2) {
-//				try {
-//					int key = Integer.parseInt(parts[0]);
-//					int value = Integer.parseInt(parts[1]);
-//					if (value == -1) {
-//						AppConfig.timestampedStandardPrint("No such key: " + key);
-//					} else {
-//						AppConfig.timestampedStandardPrint(clientMessage.getMessageText());
-//					}
-//				} catch (NumberFormatException e) {
-//					AppConfig.timestampedErrorPrint("Got TELL_GET message with bad text: " + clientMessage.getMessageText());
-//				}
-//			} else {
-//				AppConfig.timestampedErrorPrint("Got TELL_GET message with bad text: " + clientMessage.getMessageText());
-//			}
-//		} else {
-//			AppConfig.timestampedErrorPrint("Tell get handler got a message that is not TELL_GET");
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+
 	}
 
 }

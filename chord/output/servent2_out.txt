@@ -1,2 +1,28 @@
-17:43:14 - Starting servent [-57|"localhost"|1300]
-17:43:14 - Pausing for 30000 ms
+14:47:19 - Starting servent [44|localhost|1611]
+14:47:19 - Pausing for 60000 ms
+14:47:20 - Sending message [44|1611|0||NEW_NODE|1400|118]
+14:47:22 - Got message [64|1181|6||WELCOME|1611|44]
+14:47:23 - Sending message [44|1611|1||UPDATE|1181|64]
+14:47:25 - Got message [44|1611|8|localhost:1181,localhost:1400|UPDATE|1611|44]
+All node info [[64|localhost|1181], [118|localhost|1400]]
+14:47:26 - Sending message [44|1611|2||RELEASE_MUTEX|1181|64]
+14:47:29 - Got message [118|1400|9||TOKEN|1611|44]
+14:47:29 - Sending message [44|1611|3||TOKEN|1181|64]
+14:47:30 - Got message [80|1945|0||NEW_NODE|1611|44]
+ubacujem key 80 predecesor 118 ja sam 44
+ubacujem key 80 predecesor 118 ja sam 44
+14:47:31 - Sending message [80|1945|4||NEW_NODE|1181|64]
+14:47:31 - Got message [118|1400|10|35|ADD|1611|44]
+ubacujem key 35 predecesor 118 ja sam 44
+14:47:33 - Sending message [44|1611|5||RELEASE_MUTEX|1181|64]
+14:47:37 - Got message [80|1945|12|localhost:1400|UPDATE|1611|44]
+All node info [[64|localhost|1181], [80|localhost|1945], [118|localhost|1400]]
+14:47:38 - Sending message [80|1945|6|localhost:1400,localhost:1611|UPDATE|1181|64]
+14:47:39 - Got message [112|1802|0||NEW_NODE|1611|44]
+ubacujem key 112 predecesor 118 ja sam 44
+ubacujem key 112 predecesor 118 ja sam 44
+14:47:40 - Sending message [112|1802|7||NEW_NODE|1945|80]
+14:47:42 - Got message [118|1400|13||TOKEN|1611|44]
+14:47:43 - Sending message [44|1611|8||TOKEN|1181|64]
+14:47:47 - Got message [118|1400|14||RELEASE_MUTEX|1611|44]
+14:47:48 - Sending message [44|1611|9||RELEASE_MUTEX|1181|64]

@@ -6,10 +6,17 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
+import mutex.DistributedMutex;
+import mutex.TokenMutex;
 import servent.message.NewNodeMessage;
 import servent.message.util.MessageUtil;
 
 public class ServentInitializer implements Runnable {
+	
+	
+	public ServentInitializer() {
+		
+	}
 
 	private String getSomeServent() {
 		int bsPort = AppConfig.BOOTSTRAP_PORT;
@@ -48,6 +55,7 @@ public class ServentInitializer implements Runnable {
 		}
 		if (someServentPortIp.equals("-1")) { //bootstrap gave us -1 -> we are first
 			AppConfig.timestampedStandardPrint("First node in Chord system.");
+			TokenMutex.receiveToken();
 		} else { //bootstrap gave us something else - let that node tell our successor that we are here
 			String serventInfo[] = someServentPortIp.split(",");
 			
@@ -64,6 +72,9 @@ public class ServentInitializer implements Runnable {
 					receiverPort,
 					receiverIp);
 			MessageUtil.sendMessage(nnm);
+			
+		
+			
 		}
 	}
 

@@ -13,6 +13,7 @@ import cli.command.InfoCommand;
 import cli.command.PauseCommand;
 import cli.command.StopCommand;
 import cli.command.SuccessorInfo;
+import mutex.DistributedMutex;
 import servent.SimpleServentListener;
 
 /**

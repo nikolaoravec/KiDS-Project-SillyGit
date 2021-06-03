@@ -1,6 +1,8 @@
 package app;
 
 import cli.CLIParser;
+import mutex.DistributedMutex;
+import mutex.TokenMutex;
 import servent.SimpleServentListener;
 
 /**
@@ -46,6 +48,8 @@ public class ServentMain {
 		}
 		
 		AppConfig.timestampedStandardPrint("Starting servent " + AppConfig.myServentInfo);
+		
+		TokenMutex mutex = new TokenMutex();
 		
 		SimpleServentListener simpleListener = new SimpleServentListener();
 		Thread listenerThread = new Thread(simpleListener);
