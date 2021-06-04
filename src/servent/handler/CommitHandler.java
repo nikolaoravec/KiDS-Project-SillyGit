@@ -28,58 +28,65 @@ public class CommitHandler implements MessageHandler {
 				int hash = commitMessage.getHashFileName();
 				Integer chordId = Integer.parseInt(commitMessage.getMessageText());
 				int version = commitMessage.getVersion();
+				String messageText = "";
+
 
 				if (AppConfig.chordState.isKeyMine(hash)) {
+					if (AppConfig.chordState.getValueMap().containsKey(hash)) {
+						File storage = new File(AppConfig.STORAGE_PATH + File.separator);
+						File[] files = storage.listFiles();
+						int max = 0;
+						for (int i = 0; i < files.length; i++) {
 
-					File storage = new File(AppConfig.STORAGE_PATH + File.separator);
-					File[] files = storage.listFiles();
-					int max = 0;
-					for (int i = 0; i < files.length; i++) {
+							String absolutePath1 = AppConfig.fileConfig
+									.getFileNameWithoutVersion(files[i].getAbsolutePath());
+							String absolutePath2 = storage.getAbsolutePath() + "\\";
+							String relative = AppConfig.fileConfig.getRelativePath(absolutePath1, absolutePath2);
 
-						String absolutePath1 = AppConfig.fileConfig
-								.getFileNameWithoutVersion(files[i].getAbsolutePath());
-						String absolutePath2 = storage.getAbsolutePath() + "\\";
-						String relative = AppConfig.fileConfig.getRelativePath(absolutePath1, absolutePath2);
+							if (!relative.equals("")) {
 
-						if (!relative.equals("")) {
+								if (ChordState.chordHash(relative) == hash) {
 
-							if (ChordState.chordHash(relative) == hash) {
+									int versionOfFile = AppConfig.fileConfig.getFileVersion(files[i]);
 
-								int versionOfFile = AppConfig.fileConfig.getFileVersion(files[i]);
+									if (versionOfFile > max) {
+										max = versionOfFile;
 
-								if (versionOfFile > max) {
-									max = versionOfFile;
-
+									}
 								}
 							}
 						}
-					}
-					
-					if(max > version) {
-						// logika za konflikt
+
+						if (max > version) {
+							// logika za konflikt
+
+						}
+						File oldFile = new File(AppConfig.STORAGE_PATH + File.separator + commitMessage.getFileName()
+								+ "_" + max + commitMessage.getExtension());
+
+						String oldContent = AppConfig.fileConfig.getFileContent(oldFile);
+
+						if (!oldContent.trim().equals(commitMessage.getContent().trim())) {
+							int newVersion = max + 1;
+							File commitFile = new File(AppConfig.STORAGE_PATH + File.separator
+									+ commitMessage.getFileName() + "_" + newVersion + commitMessage.getExtension());
+							AppConfig.fileConfig.setFileContent(commitFile, commitMessage.getContent());
+							AppConfig.chordState.getFileVersions().put(commitFile.getName(), newVersion);
+
+						}
+
+						messageText = "Fajl je commitovan";
+					} else {
+						messageText = "Fajl ne postoji ili je izbrisan";
 						
 					}
-					File oldFile = new File(AppConfig.STORAGE_PATH + File.separator + commitMessage.getFileName() + "_"
-							+ max + commitMessage.getExtension());
-
-					String oldContent = AppConfig.fileConfig.getFileContent(oldFile);
-
-					if (!oldContent.trim().equals(commitMessage.getContent().trim())) {
-						int newVersion = max + 1;
-						File commitFile = new File(AppConfig.STORAGE_PATH + File.separator + commitMessage.getFileName()
-								+ "_" + newVersion + commitMessage.getExtension());
-						AppConfig.fileConfig.setFileContent(commitFile, commitMessage.getContent());
-						AppConfig.chordState.getFileVersions().put(commitFile.getName(), newVersion);
-
-					}
-
+					
 					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
 					ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(
 							AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
 							nextNode.getListenerPort(), nextNode.getIpAddress(), chordId);
 
 					MessageUtil.sendMessage(releaseMutexMessage);
-
 				} else {
 					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(hash);
 					CommitMessage pm = new CommitMessage(AppConfig.myServentInfo.getListenerPort(),

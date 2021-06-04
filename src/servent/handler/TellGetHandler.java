@@ -35,7 +35,7 @@ public class TellGetHandler implements MessageHandler {
 				if (AppConfig.myServentInfo.getChordId() == chordId) {
 
 					String storage = AppConfig.WORK_ROUTE_PATH + File.separator;
-					File newFile = new File(storage + tellGetMessage.getFileName());
+					File newFile = new File(storage + tellGetMessage.getFileName() + tellGetMessage.getExtension());
 
 					try {
 						newFile.createNewFile();
@@ -51,7 +51,7 @@ public class TellGetHandler implements MessageHandler {
 					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
 					TellGetMessage tgm = new TellGetMessage(AppConfig.myServentInfo.getListenerPort(),
 							AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
-							tellGetMessage.getFile(), tellGetMessage.getFileName(), tellGetMessage.getContent(),
+							tellGetMessage.getFile(), tellGetMessage.getFileName(), tellGetMessage.getExtension(),tellGetMessage.getContent(),
 							tellGetMessage.getRelativePath(), chordId, tellGetMessage.getVersionOfFIle());
 
 					MessageUtil.sendMessage(tgm);

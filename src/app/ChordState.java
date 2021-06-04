@@ -20,6 +20,7 @@ import mutex.TokenMutex;
 import servent.message.AddMessage;
 import servent.message.AskGetMessage;
 import servent.message.CommitMessage;
+import servent.message.DeleteMessage;
 import servent.message.WelcomeMessage;
 import servent.message.util.MessageUtil;
 
@@ -359,8 +360,6 @@ public class ChordState {
 				}
 
 				AppConfig.fileConfig.setFileContent(newFile, content);
-				
-
 				valueMap.put(hashFileName, newFile);
 			} else {
 
@@ -385,8 +384,7 @@ public class ChordState {
 				childrenHashes.put(hashFileName, childrenHash);
 			}
 
-			TokenMutex.unlock();
-			AppConfig.mutex.release();
+			AppConfig.releaseBothMutex();
 
 		} else {
 			ServentInfo nextNode = getNextNodeForKey(hashFileName);
@@ -429,7 +427,7 @@ public class ChordState {
 
 			String oldContent = AppConfig.fileConfig.getFileContent(oldFile);
 
-			if (!oldContent.equals(content)) {
+			if (!oldContent.trim().equals(content.trim())) {
 				int newVersion = max + 1;
 				File commitFile = new File(
 						AppConfig.STORAGE_PATH + File.separator + fileName + "_" + newVersion + extension);
@@ -442,11 +440,11 @@ public class ChordState {
 			ServentInfo nextNode = getNextNodeForKey(hashFileName);
 			CommitMessage pm = new CommitMessage(AppConfig.myServentInfo.getListenerPort(),
 					AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
-					hashFileName, fileName, content, extension, version, isDir, children, AppConfig.myServentInfo.getChordId());
+					hashFileName, fileName, content, extension, version, isDir, children,
+					AppConfig.myServentInfo.getChordId());
 			MessageUtil.sendMessage(pm);
 		}
 	}
-
 
 	public void getValue(ServentInfo target, int hash, int version) {
 		File toReturn = null;
@@ -455,12 +453,11 @@ public class ChordState {
 
 				File storage = new File(AppConfig.STORAGE_PATH);
 				File[] files = storage.listFiles();
-				System.out.println(files.toString());
-				int max = 0;
+
+				int max = -1;
 				for (int i = 0; i < files.length; i++) {
-					
-					String absolutePath1 = AppConfig.fileConfig
-							.getFileNameWithoutVersion(files[i].getAbsolutePath());
+
+					String absolutePath1 = AppConfig.fileConfig.getFileNameWithoutVersion(files[i].getAbsolutePath());
 					String absolutePath2 = storage.getAbsolutePath() + "\\";
 					String relative = AppConfig.fileConfig.getRelativePath(absolutePath1, absolutePath2);
 					
@@ -472,7 +469,7 @@ public class ChordState {
 							if (!files[i].isDirectory()) {
 								if (version == -1) {
 									int versionOfFile = AppConfig.fileConfig.getFileVersion(files[i]);
-									
+
 									if (versionOfFile > max) {
 										max = versionOfFile;
 										toReturn = files[i];
@@ -481,7 +478,7 @@ public class ChordState {
 									int versionOfFile = AppConfig.fileConfig.getFileVersion(files[i]);
 									if (versionOfFile == version) {
 										toReturn = files[i];
-										
+
 									}
 								}
 							} else {
@@ -491,24 +488,24 @@ public class ChordState {
 						}
 					}
 				}
-				
+
 				if (toReturn != null) {
 					String content = AppConfig.fileConfig.getFileContent(toReturn);
 					int versionOfFile = AppConfig.fileConfig.getFileVersion(toReturn);
 					String workRoute = AppConfig.WORK_ROUTE_PATH + File.separator;
-					File newFile = new File(workRoute + toReturn.getName());
+					File newFile = new File(
+							workRoute + AppConfig.fileConfig.getFileNameWithoutVersion(toReturn.getName())
+									+ AppConfig.fileConfig.getFileExtension(toReturn));
 					AppConfig.fileConfig.setFileContent(newFile, content);
 					fileVersions.put(toReturn.getName(), versionOfFile);
 
-					TokenMutex.unlock();
-					AppConfig.mutex.release();
 				} else {
 					System.out.println("Fajl nije pronadjen");
 
-					TokenMutex.unlock();
-					AppConfig.mutex.release();
 				}
 			}
+			AppConfig.releaseBothMutex();
+
 		} else {
 
 			ServentInfo nextNode = getNextNodeForKey(hash);
@@ -520,5 +517,36 @@ public class ChordState {
 		}
 	}
 
+	public void delete(int hashFileName) {
+
+		if (isKeyMine(hashFileName)) {
+
+			File storage = new File(AppConfig.STORAGE_PATH + File.separator);
+			File[] files = storage.listFiles();
+
+			for (int i = 0; i < files.length; i++) {
+
+				String absolutePath1 = AppConfig.fileConfig.getFileNameWithoutVersion(files[i].getAbsolutePath());
+				String absolutePath2 = storage.getAbsolutePath() + "\\";
+				String relative = AppConfig.fileConfig.getRelativePath(absolutePath1, absolutePath2);
+				
+				if (!relative.equals("")) {
+
+					if (ChordState.chordHash(relative) == hashFileName) {
+						files[i].delete();
+					}
+				}
+			}
+
+			AppConfig.releaseBothMutex();
+
+		} else {
+			ServentInfo nextNode = getNextNodeForKey(hashFileName);
+			DeleteMessage dm = new DeleteMessage(AppConfig.myServentInfo.getListenerPort(),
+					AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
+					hashFileName, AppConfig.myServentInfo.getChordId());
+			MessageUtil.sendMessage(dm);
+		}
+	}
 
 }

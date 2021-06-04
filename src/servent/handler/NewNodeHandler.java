@@ -53,7 +53,7 @@ public class NewNodeHandler implements MessageHandler {
 					e1.printStackTrace();
 				}
 				if(!AppConfig.chordState.isKeyMine(newNodeInfo.getChordId())) {
-					TokenMutex.unlock();
+					AppConfig.releaseBothMutex();
 					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(newNodeInfo.getChordId());
 					NewNodeMessage nnm = new NewNodeMessage(newNodePort, newNodeIp, nextNode.getListenerPort(),
 							nextNode.getIpAddress());

@@ -30,7 +30,7 @@ public class AddHandler implements MessageHandler {
 			try {
 				int hash = addMessage.getHashFileName();
 				Integer chordId = Integer.parseInt(addMessage.getMessageText());
-
+			
 				if (AppConfig.chordState.isKeyMine(hash)) {
 
 					String storage = AppConfig.STORAGE_PATH + File.separator;
@@ -55,17 +55,10 @@ public class AddHandler implements MessageHandler {
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
-
-						try (BufferedWriter bw = new BufferedWriter(new FileWriter(newFile.getAbsolutePath()))) {
-							bw.write(addMessage.getContent());
-							bw.newLine();
-							bw.close();
-						} catch (FileNotFoundException e) {
-							System.out.println("Error BR: " + e.getMessage());
-						} catch (IOException e) {
-							System.out.println("Error BW: " + e.getMessage());
-						}
-
+						
+						AppConfig.fileConfig.setFileContent(newFile, addMessage.getContent());
+						AppConfig.chordState.getValueMap().put(hash, newFile);
+						
 					} else {
 
 						String relativePath = addMessage.getRelativePath().replace("\\", "/");

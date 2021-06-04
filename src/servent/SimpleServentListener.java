@@ -12,6 +12,7 @@ import app.Cancellable;
 import mutex.DistributedMutex;
 import servent.handler.AskGetHandler;
 import servent.handler.CommitHandler;
+import servent.handler.DeleteMessageHandler;
 import servent.handler.MessageHandler;
 import servent.handler.NewNodeHandler;
 import servent.handler.NullHandler;
@@ -98,6 +99,9 @@ public class SimpleServentListener implements Runnable, Cancellable {
 					break;
 				case COMMIT:
 					messageHandler = new CommitHandler(clientMessage);
+					break;
+				case DELETE:
+					messageHandler = new DeleteMessageHandler(clientMessage);
 					break;
 				case POISON:
 					break;

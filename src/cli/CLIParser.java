@@ -9,6 +9,7 @@ import app.Cancellable;
 import cli.command.CLICommand;
 import cli.command.CommitCommand;
 import cli.command.DHTPullCommand;
+import cli.command.DeleteCommand;
 import cli.command.DHTAddCommand;
 import cli.command.InfoCommand;
 import cli.command.PauseCommand;
@@ -51,6 +52,7 @@ public class CLIParser implements Runnable, Cancellable {
 		commandList.add(new DHTAddCommand());
 		commandList.add(new StopCommand(this, listener));
 		commandList.add(new CommitCommand());
+		commandList.add(new DeleteCommand());
 	}
 	
 	@Override

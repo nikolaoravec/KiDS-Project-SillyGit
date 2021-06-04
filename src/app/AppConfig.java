@@ -168,12 +168,12 @@ public class AppConfig {
 		}
 		
 		File test1 = new File(WORK_ROUTE_PATH +  File.separator + "test" + myServentInfo.getChordId());
-		fileConfig.setFileContent(test1, "asdasdasdas");
+		fileConfig.setFileContent(test1, "ovo je test");
 		
 		chordState.getFileVersions().put(test1.getName(), 0);
 		
-		File test2 = new File(WORK_ROUTE_PATH +  File.separator + "asdasdsad" + myServentInfo.getChordId());
-		fileConfig.setFileContent(test2, "asdasdadadsadsdas");
+		File test2 = new File(WORK_ROUTE_PATH +  File.separator + "proba" + myServentInfo.getChordId());
+		fileConfig.setFileContent(test2, "ovo je proba");
 		chordState.getFileVersions().put(test2.getName(), 0);
 	}
 
