@@ -59,6 +59,7 @@ public class QuitCommand implements CLICommand {
 				AppConfig.myServentInfo.getIpAddress(), AppConfig.chordState.getNextNode().getListenerPort(),
 				AppConfig.chordState.getNextNode().getIpAddress(), AppConfig.chordState.getValueMap(),
 				AppConfig.myServentInfo.getChordId());
+		
 		MessageUtil.sendMessage(giveMyFilesMessage);
 
 //		Moras obavestiti sve cvorove za izlazak iz sistema

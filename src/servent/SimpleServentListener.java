@@ -20,6 +20,7 @@ import servent.handler.NullHandler;
 import servent.handler.QuitMessageHandler;
 import servent.handler.ReleaseMutexHandler;
 import servent.handler.RemoveMessageHandler;
+import servent.handler.SetPredecessorHandler;
 import servent.handler.SorryHandler;
 import servent.handler.TellGetHandler;
 import servent.handler.TokenHandler;
@@ -113,6 +114,9 @@ public class SimpleServentListener implements Runnable, Cancellable {
 					break;
 				case GIVE_ACCEPTED:
 					messageHandler = new GiveMyFilesAcceptedHandler(clientMessage);
+					break;
+				case SET_PRED:
+					messageHandler = new SetPredecessorHandler(clientMessage);
 					break;
 				case POISON:
 					break;

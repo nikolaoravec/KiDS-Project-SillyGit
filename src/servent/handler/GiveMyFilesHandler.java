@@ -57,10 +57,8 @@ public class GiveMyFilesHandler implements MessageHandler {
 					filesToAdd.add(newFile);
 				}
 				AppConfig.chordState.getValueMap().put(valueEntry.getKey(), filesToAdd);
-				
 
 			}
-			System.out.println(AppConfig.chordState.getValueMap().toString());
 
 			chordId = Integer.parseInt(giveMyFilesMessage.getMessageText());
 

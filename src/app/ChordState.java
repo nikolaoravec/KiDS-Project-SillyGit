@@ -60,6 +60,7 @@ public class ChordState {
 		allNodeInfo = new ArrayList<>();
 		fileVersions = new HashMap<>();
 	}
+	
 
 	/**
 	 * This should be called once after we get <code>WELCOME</code> message. It sets
@@ -90,6 +91,11 @@ public class ChordState {
 		}
 	}
 
+	
+	public void setAllNodeInfo(List<ServentInfo> allNodeInfo) {
+		this.allNodeInfo = allNodeInfo;
+	}
+	
 	public Map<Integer, List<Integer>> getChildrenHashes() {
 		return childrenHashes;
 	}
@@ -162,8 +168,7 @@ public class ChordState {
 
 		int predecessorChordId = predecessorInfo.getChordId();
 		int myChordId = AppConfig.myServentInfo.getChordId();
-		// System.out.println("ubacujem key " + key + " predecesor " +
-		// predecessorChordId + " ja sam " + myChordId);
+		 System.out.println(" predecesor " +predecessorChordId + " ja sam " + myChordId);
 		if (predecessorChordId < myChordId) { // no overflow
 			if (key <= myChordId && key > predecessorChordId) {
 				return true;
@@ -276,6 +281,7 @@ public class ChordState {
 				}
 			}
 		}
+		System.out.println("nova lista sledbenika "+ successorTable.toString());
 	}
 
 	/**
@@ -433,6 +439,8 @@ public class ChordState {
 				AppConfig.fileConfig.setFileContent(commitFile, content);
 				getValueMap().get(hashFileName).add(commitFile);
 
+			}else {
+				System.err.println("File not found.");
 			}
 			AppConfig.releaseBothMutex();
 

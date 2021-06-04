@@ -1,10 +1,15 @@
 package servent.handler;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import app.AppConfig;
 import app.ServentInfo;
 import servent.message.Message;
 import servent.message.MessageType;
 import servent.message.QuitMessage;
+import servent.message.SetPredecessorMessage;
 import servent.message.util.MessageUtil;
 
 public class QuitMessageHandler implements MessageHandler {
@@ -22,8 +27,22 @@ public class QuitMessageHandler implements MessageHandler {
 			int chordId = Integer.parseInt(quitMessage.getMessageText());
 
 			if (AppConfig.myServentInfo.getChordId() == chordId) {
+				
+				SetPredecessorMessage setPredecessorMessage = new SetPredecessorMessage(AppConfig.myServentInfo.getListenerPort(),
+						AppConfig.myServentInfo.getIpAddress(), AppConfig.chordState.getNextNodePort(),
+						AppConfig.chordState.getNextNodeIp(), 
+						AppConfig.chordState.getPredecessor().getIpAddress(),
+						AppConfig.chordState.getPredecessor().getListenerPort());
+				
+				MessageUtil.sendMessage(setPredecessorMessage);
+
 
 				AppConfig.releaseBothMutex();
+				
+				File f = new File(AppConfig.STORAGE);
+				
+				boolean ret = f.delete();
+					//System.out.println("Storage is deleted.");
 
 				try {
 					Thread.sleep(10000);
@@ -44,11 +63,15 @@ public class QuitMessageHandler implements MessageHandler {
 
 				MessageUtil.sendMessage(nextQuitMessage);
 
+				ServentInfo toRemove = null;
+				List<ServentInfo> newList = new ArrayList<>();
 				for (ServentInfo s : AppConfig.chordState.allNodeInfo) {
-					if (s.getChordId() == chordId) {
-						AppConfig.chordState.allNodeInfo.remove(s);
+					if (s.getChordId() != chordId) {
+						newList.add(s);
 					}
 				}
+				AppConfig.chordState.setAllNodeInfo(newList);
+			
 //				try {
 //					Thread.sleep(1000);
 //				} catch (Exception e) {

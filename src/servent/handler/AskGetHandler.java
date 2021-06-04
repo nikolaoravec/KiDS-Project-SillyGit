@@ -33,10 +33,9 @@ public class AskGetHandler implements MessageHandler {
 				int hash = Integer.parseInt(messageText[0]);
 				int version = Integer.parseInt(messageText[1]);
 				int chordId = Integer.parseInt(messageText[2]);
-				System.out.println(AppConfig.myServentInfo.getChordId() == chordId);
-
+				
 				String relativeGLobal = "";
-
+				System.out.println("da li je moj kljuc " + AppConfig.chordState.isKeyMine(hash));
 				if (AppConfig.chordState.isKeyMine(hash)) {
 					if (AppConfig.chordState.getValueMap().containsKey(hash)) {
 						File toReturn = null;
@@ -69,8 +68,6 @@ public class AskGetHandler implements MessageHandler {
 											if (versionOfFile == version) {
 												toReturn = files[i];
 												relativeGLobal = relative;
-											}else {
-												toReturn = null;
 											}
 										}
 									} else {
