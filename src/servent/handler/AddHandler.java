@@ -1,10 +1,8 @@
 package servent.handler;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import app.AppConfig;
 import app.ServentInfo;
@@ -30,7 +28,7 @@ public class AddHandler implements MessageHandler {
 			try {
 				int hash = addMessage.getHashFileName();
 				Integer chordId = Integer.parseInt(addMessage.getMessageText());
-			
+
 				if (AppConfig.chordState.isKeyMine(hash)) {
 
 					String storage = AppConfig.STORAGE_PATH + File.separator;
@@ -55,10 +53,13 @@ public class AddHandler implements MessageHandler {
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
-						
+
 						AppConfig.fileConfig.setFileContent(newFile, addMessage.getContent());
-						AppConfig.chordState.getValueMap().put(hash, newFile);
-						
+
+						ArrayList<File> list = new ArrayList<File>();
+						list.add(newFile);
+						AppConfig.chordState.getValueMap().put(hash, list);
+
 					} else {
 
 						String relativePath = addMessage.getRelativePath().replace("\\", "/");
@@ -70,7 +71,9 @@ public class AddHandler implements MessageHandler {
 							newFile.mkdir();
 						}
 
-						AppConfig.chordState.getValueMap().put(hash, newFile);
+						ArrayList<File> list = new ArrayList<File>();
+						list.add(newFile);
+						AppConfig.chordState.getValueMap().put(hash, list);
 
 						// ArrayList<Integer> childrenHash = new ArrayList<>();
 						//
@@ -83,7 +86,7 @@ public class AddHandler implements MessageHandler {
 					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
 					ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(
 							AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
-							 nextNode.getListenerPort(), nextNode.getIpAddress(), chordId);
+							nextNode.getListenerPort(), nextNode.getIpAddress(), chordId, "Add seccesfull!");
 
 					MessageUtil.sendMessage(releaseMutexMessage);
 

@@ -1,11 +1,6 @@
 package app;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -16,11 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import mutex.TokenMutex;
 import servent.message.AddMessage;
-import servent.message.AskGetMessage;
+import servent.message.AskPullMessage;
 import servent.message.CommitMessage;
-import servent.message.DeleteMessage;
+import servent.message.RemoveMessage;
 import servent.message.WelcomeMessage;
 import servent.message.util.MessageUtil;
 
@@ -39,9 +33,9 @@ public class ChordState {
 
 	// we DO NOT use this to send messages, but only to construct the successor
 	// table
-	private List<ServentInfo> allNodeInfo;
+	public List<ServentInfo> allNodeInfo;
 
-	private Map<Integer, File> valueMap;
+	private Map<Integer, ArrayList<File>> valueMap;
 	private Map<String, Integer> fileVersions;
 	private Map<Integer, List<Integer>> childrenHashes;
 
@@ -138,11 +132,11 @@ public class ChordState {
 		this.predecessorInfo = newNodeInfo;
 	}
 
-	public Map<Integer, File> getValueMap() {
+	public Map<Integer, ArrayList<File>> getValueMap() {
 		return valueMap;
 	}
 
-	public void setValueMap(Map<Integer, File> valueMap) {
+	public void setValueMap(Map<Integer, ArrayList<File>> valueMap) {
 		this.valueMap = valueMap;
 	}
 
@@ -232,7 +226,7 @@ public class ChordState {
 		return successorTable[0];
 	}
 
-	private void updateSuccessorTable() {
+	public void updateSuccessorTable() {
 		// first node after me has to be successorTable[0]
 
 		int currentNodeIndex = 0;
@@ -360,7 +354,9 @@ public class ChordState {
 				}
 
 				AppConfig.fileConfig.setFileContent(newFile, content);
-				valueMap.put(hashFileName, newFile);
+				ArrayList<File> list = new ArrayList<File>();
+				list.add(newFile);
+				valueMap.put(hashFileName, list);
 			} else {
 
 				System.out.println("hocu da napravim dir " + relativePath);
@@ -372,8 +368,10 @@ public class ChordState {
 				if (!newFile.exists()) {
 					newFile.mkdir();
 				}
-
-				valueMap.put(hashFileName, newFile);
+				
+				ArrayList<File> list = new ArrayList<File>();
+				list.add(newFile);
+				valueMap.put(hashFileName, list);
 
 				ArrayList<Integer> childrenHash = new ArrayList<>();
 
@@ -431,7 +429,9 @@ public class ChordState {
 				int newVersion = max + 1;
 				File commitFile = new File(
 						AppConfig.STORAGE_PATH + File.separator + fileName + "_" + newVersion + extension);
+				
 				AppConfig.fileConfig.setFileContent(commitFile, content);
+				getValueMap().get(hashFileName).add(commitFile);
 
 			}
 			AppConfig.releaseBothMutex();
@@ -460,8 +460,7 @@ public class ChordState {
 					String absolutePath1 = AppConfig.fileConfig.getFileNameWithoutVersion(files[i].getAbsolutePath());
 					String absolutePath2 = storage.getAbsolutePath() + "\\";
 					String relative = AppConfig.fileConfig.getRelativePath(absolutePath1, absolutePath2);
-					
-					int newVersion = 0;
+
 					if (!relative.equals("")) {
 
 						if (ChordState.chordHash(relative) == hash) {
@@ -509,7 +508,7 @@ public class ChordState {
 		} else {
 
 			ServentInfo nextNode = getNextNodeForKey(hash);
-			AskGetMessage agm = new AskGetMessage(AppConfig.myServentInfo.getListenerPort(),
+			AskPullMessage agm = new AskPullMessage(AppConfig.myServentInfo.getListenerPort(),
 					AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
 					String.valueOf(hash + "," + version + "," + AppConfig.myServentInfo.getChordId()));
 			MessageUtil.sendMessage(agm);
@@ -517,7 +516,7 @@ public class ChordState {
 		}
 	}
 
-	public void delete(int hashFileName) {
+	public void remove(int hashFileName) {
 
 		if (isKeyMine(hashFileName)) {
 
@@ -529,7 +528,7 @@ public class ChordState {
 				String absolutePath1 = AppConfig.fileConfig.getFileNameWithoutVersion(files[i].getAbsolutePath());
 				String absolutePath2 = storage.getAbsolutePath() + "\\";
 				String relative = AppConfig.fileConfig.getRelativePath(absolutePath1, absolutePath2);
-				
+
 				if (!relative.equals("")) {
 
 					if (ChordState.chordHash(relative) == hashFileName) {
@@ -542,7 +541,7 @@ public class ChordState {
 
 		} else {
 			ServentInfo nextNode = getNextNodeForKey(hashFileName);
-			DeleteMessage dm = new DeleteMessage(AppConfig.myServentInfo.getListenerPort(),
+			RemoveMessage dm = new RemoveMessage(AppConfig.myServentInfo.getListenerPort(),
 					AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
 					hashFileName, AppConfig.myServentInfo.getChordId());
 			MessageUtil.sendMessage(dm);

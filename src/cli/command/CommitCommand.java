@@ -3,6 +3,7 @@ package cli.command;
 import java.io.File;
 
 import app.AppConfig;
+import app.ChordState;
 import mutex.TokenMutex;
 
 public class CommitCommand implements CLICommand {
@@ -47,7 +48,7 @@ public class CommitCommand implements CLICommand {
 
 				} else {
 					System.out.println(fileToCommit.getAbsolutePath());
-					int hashFileName = AppConfig.chordState.chordHash(relative);
+					int hashFileName = ChordState.chordHash(relative);
 					AppConfig.chordState.commit(hashFileName, fileName,
 							AppConfig.fileConfig.getFileContent(fileToCommit),
 							AppConfig.fileConfig.getFileExtension(fileToCommit), false, null, AppConfig.chordState.getFileVersions().get(relative));

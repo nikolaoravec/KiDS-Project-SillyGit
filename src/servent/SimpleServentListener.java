@@ -9,15 +9,17 @@ import java.util.concurrent.Executors;
 
 import app.AppConfig;
 import app.Cancellable;
-import mutex.DistributedMutex;
+import servent.handler.AddHandler;
 import servent.handler.AskGetHandler;
 import servent.handler.CommitHandler;
-import servent.handler.DeleteMessageHandler;
+import servent.handler.GiveMyFilesAcceptedHandler;
+import servent.handler.GiveMyFilesHandler;
 import servent.handler.MessageHandler;
 import servent.handler.NewNodeHandler;
 import servent.handler.NullHandler;
+import servent.handler.QuitMessageHandler;
 import servent.handler.ReleaseMutexHandler;
-import servent.handler.AddHandler;
+import servent.handler.RemoveMessageHandler;
 import servent.handler.SorryHandler;
 import servent.handler.TellGetHandler;
 import servent.handler.TokenHandler;
@@ -100,8 +102,17 @@ public class SimpleServentListener implements Runnable, Cancellable {
 				case COMMIT:
 					messageHandler = new CommitHandler(clientMessage);
 					break;
-				case DELETE:
-					messageHandler = new DeleteMessageHandler(clientMessage);
+				case REMOVE:
+					messageHandler = new RemoveMessageHandler(clientMessage);
+					break;
+				case QUIT:
+					messageHandler = new QuitMessageHandler(clientMessage);
+					break;
+				case GIVEMYFILES:
+					messageHandler = new GiveMyFilesHandler(clientMessage);
+					break;
+				case GIVE_ACCEPTED:
+					messageHandler = new GiveMyFilesAcceptedHandler(clientMessage);
 					break;
 				case POISON:
 					break;

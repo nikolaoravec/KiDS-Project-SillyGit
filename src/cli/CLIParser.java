@@ -8,14 +8,14 @@ import app.AppConfig;
 import app.Cancellable;
 import cli.command.CLICommand;
 import cli.command.CommitCommand;
-import cli.command.DHTPullCommand;
-import cli.command.DeleteCommand;
 import cli.command.DHTAddCommand;
+import cli.command.DHTPullCommand;
+import cli.command.RemoveCommand;
 import cli.command.InfoCommand;
 import cli.command.PauseCommand;
+import cli.command.QuitCommand;
 import cli.command.StopCommand;
 import cli.command.SuccessorInfo;
-import mutex.DistributedMutex;
 import servent.SimpleServentListener;
 
 /**
@@ -52,7 +52,8 @@ public class CLIParser implements Runnable, Cancellable {
 		commandList.add(new DHTAddCommand());
 		commandList.add(new StopCommand(this, listener));
 		commandList.add(new CommitCommand());
-		commandList.add(new DeleteCommand());
+		commandList.add(new RemoveCommand());
+		commandList.add(new QuitCommand(this));
 	}
 	
 	@Override

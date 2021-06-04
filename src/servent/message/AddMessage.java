@@ -2,8 +2,6 @@ package servent.message;
 
 import java.util.ArrayList;
 
-import app.ServentInfo;
-
 public class AddMessage extends BasicMessage {
 
 	private static final long serialVersionUID = 5163039209888734276L;

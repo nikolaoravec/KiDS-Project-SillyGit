@@ -72,6 +72,7 @@ public class CommitHandler implements MessageHandler {
 									+ commitMessage.getFileName() + "_" + newVersion + commitMessage.getExtension());
 							AppConfig.fileConfig.setFileContent(commitFile, commitMessage.getContent());
 							AppConfig.chordState.getFileVersions().put(commitFile.getName(), newVersion);
+							AppConfig.chordState.getValueMap().get(hash).add(commitFile);
 
 						}
 
@@ -84,7 +85,7 @@ public class CommitHandler implements MessageHandler {
 					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
 					ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(
 							AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
-							nextNode.getListenerPort(), nextNode.getIpAddress(), chordId);
+							nextNode.getListenerPort(), nextNode.getIpAddress(), chordId, messageText);
 
 					MessageUtil.sendMessage(releaseMutexMessage);
 				} else {

@@ -1,21 +1,15 @@
 package servent.handler;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 import app.AppConfig;
 import app.ChordState;
 import app.ServentInfo;
-import servent.message.AskGetMessage;
+import servent.message.AskPullMessage;
 import servent.message.Message;
 import servent.message.MessageType;
 import servent.message.ReleaseMutexMessage;
-import servent.message.TellGetMessage;
+import servent.message.TellPullMessage;
 import servent.message.util.MessageUtil;
 
 public class AskGetHandler implements MessageHandler {
@@ -32,20 +26,14 @@ public class AskGetHandler implements MessageHandler {
 
 			System.out.println("usao sam u get");
 			try {
-				AskGetMessage askGetMessage = (AskGetMessage) clientMessage;
+				AskPullMessage askGetMessage = (AskPullMessage) clientMessage;
 				String[] messageText = askGetMessage.getMessageText().split(",");
+				String messageTextReturn = "";
 
 				int hash = Integer.parseInt(messageText[0]);
 				int version = Integer.parseInt(messageText[1]);
 				int chordId = Integer.parseInt(messageText[2]);
-
-				// ako je poruka obrnula ceo krug i dosla do mene, to znaci da fajl ne postoji u
-				// sistemu, ili je izbrisan
-				if (AppConfig.myServentInfo.getChordId() == chordId) {
-					System.out.println("Fajl je ne postoji u sistemu ili je izbrisan.");
-					AppConfig.releaseBothMutex();
-					return;
-				}
+				System.out.println(AppConfig.myServentInfo.getChordId() == chordId);
 
 				String relativeGLobal = "";
 
@@ -97,7 +85,7 @@ public class AskGetHandler implements MessageHandler {
 						if (toReturn != null) {
 							int versionOfFile = AppConfig.fileConfig.getFileVersion(toReturn);
 							ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
-							TellGetMessage tellGetMessage = new TellGetMessage(
+							TellPullMessage tellGetMessage = new TellPullMessage(
 									AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
 									nextNode.getListenerPort(), nextNode.getIpAddress(), toReturn,
 									AppConfig.fileConfig.getFileNameWithoutVersion(toReturn.getName()),
@@ -107,10 +95,11 @@ public class AskGetHandler implements MessageHandler {
 
 							MessageUtil.sendMessage(tellGetMessage);
 						} else {
+							messageTextReturn = "Fajl ne postoji ili je izbrisan";
 							ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
 							ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(
 									AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
-									nextNode.getListenerPort(), nextNode.getIpAddress(), chordId);
+									nextNode.getListenerPort(), nextNode.getIpAddress(), chordId, messageTextReturn);
 
 							MessageUtil.sendMessage(releaseMutexMessage);
 						}
@@ -118,7 +107,7 @@ public class AskGetHandler implements MessageHandler {
 						ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
 						ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(
 								AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
-								nextNode.getListenerPort(), nextNode.getIpAddress(), chordId);
+								nextNode.getListenerPort(), nextNode.getIpAddress(), chordId, "File not found to pull!");
 
 						MessageUtil.sendMessage(releaseMutexMessage);
 					}
@@ -126,7 +115,7 @@ public class AskGetHandler implements MessageHandler {
 
 					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(hash);
 
-					AskGetMessage agm = new AskGetMessage(AppConfig.myServentInfo.getListenerPort(),
+					AskPullMessage agm = new AskPullMessage(AppConfig.myServentInfo.getListenerPort(),
 							AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
 							String.valueOf(hash + "," + version + "," + chordId));
 					MessageUtil.sendMessage(agm);

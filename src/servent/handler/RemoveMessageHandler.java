@@ -1,37 +1,32 @@
 package servent.handler;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
 
 import app.AppConfig;
 import app.ChordState;
 import app.ServentInfo;
-import servent.message.AddMessage;
-import servent.message.DeleteMessage;
 import servent.message.Message;
 import servent.message.MessageType;
 import servent.message.ReleaseMutexMessage;
+import servent.message.RemoveMessage;
 import servent.message.util.MessageUtil;
 
-public class DeleteMessageHandler implements MessageHandler {
+public class RemoveMessageHandler implements MessageHandler {
 
 	private Message clientMessage;
 
-	public DeleteMessageHandler(Message clientMessage) {
+	public RemoveMessageHandler(Message clientMessage) {
 		this.clientMessage = clientMessage;
 	}
 
 	@Override
 	public void run() {
-		if (clientMessage.getMessageType() == MessageType.DELETE) {
-			DeleteMessage addMessage = (DeleteMessage) clientMessage;
+		if (clientMessage.getMessageType() == MessageType.REMOVE) {
+			RemoveMessage removeMessage = (RemoveMessage) clientMessage;
 
 			try {
-				int hash = addMessage.getHashFileName();
-				Integer chordId = Integer.parseInt(addMessage.getMessageText());
+				int hash = removeMessage.getHashFileName();
+				Integer chordId = Integer.parseInt(removeMessage.getMessageText());
 
 				if (AppConfig.chordState.isKeyMine(hash)) {
 
@@ -40,7 +35,8 @@ public class DeleteMessageHandler implements MessageHandler {
 
 					for (int i = 0; i < files.length; i++) {
 
-						String absolutePath1 = AppConfig.fileConfig.getFileNameWithoutVersion(files[i].getAbsolutePath());
+						String absolutePath1 = AppConfig.fileConfig
+								.getFileNameWithoutVersion(files[i].getAbsolutePath());
 						String absolutePath2 = storage.getAbsolutePath() + "\\";
 						String relative = AppConfig.fileConfig.getRelativePath(absolutePath1, absolutePath2);
 
@@ -50,33 +46,33 @@ public class DeleteMessageHandler implements MessageHandler {
 							}
 						}
 					}
-					
+
 					AppConfig.chordState.getValueMap().remove(hash);
 					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
 					ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(
 							AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
-							 nextNode.getListenerPort(), nextNode.getIpAddress(), chordId);
+							nextNode.getListenerPort(), nextNode.getIpAddress(), chordId, "Delete succesfull!");
 
 					MessageUtil.sendMessage(releaseMutexMessage);
 
 				} else {
 					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(hash);
-					DeleteMessage dm = new DeleteMessage(AppConfig.myServentInfo.getListenerPort(),
+					RemoveMessage dm = new RemoveMessage(AppConfig.myServentInfo.getListenerPort(),
 							AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
 							hash, chordId);
 					MessageUtil.sendMessage(dm);
-			
+
 				}
 			} catch (NumberFormatException e) {
 				AppConfig.timestampedErrorPrint("Got put message with bad text: " + clientMessage.getMessageText());
 			}
 
-		}else
+		} else
 
-	{
-		AppConfig.timestampedErrorPrint("Put handler got a message that is not PUT");
+		{
+			AppConfig.timestampedErrorPrint("Put handler got a message that is not PUT");
+		}
+
 	}
-
-}
 
 }

@@ -4,11 +4,11 @@ import app.AppConfig;
 import app.ChordState;
 import mutex.TokenMutex;
 
-public class DeleteCommand  implements CLICommand {
+public class RemoveCommand  implements CLICommand {
 	
 	@Override
 	public String commandName() {
-		return "delete";
+		return "remove";
 	}
 
 	@Override
@@ -20,7 +20,7 @@ public class DeleteCommand  implements CLICommand {
 		}
 		
 		TokenMutex.lock();
-		System.out.println("Uzeo sam lock u Delete komandi");
+		System.out.println("Uzeo sam lock u Remove komandi");
 		String[] splitArgs = args.split(" ");
 
 		if (splitArgs.length == 1) {
@@ -29,7 +29,7 @@ public class DeleteCommand  implements CLICommand {
 				fileName = splitArgs[0];
 				
 				int hashFileName = ChordState.chordHash(fileName);
-				AppConfig.chordState.delete(hashFileName);
+				AppConfig.chordState.remove(hashFileName);
 					 
 			
 			} catch (Exception e) {

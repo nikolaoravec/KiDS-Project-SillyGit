@@ -1,17 +1,13 @@
 package servent.handler;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 
 import app.AppConfig;
 import app.ServentInfo;
-import mutex.TokenMutex;
 import servent.message.Message;
 import servent.message.MessageType;
-import servent.message.TellGetMessage;
+import servent.message.TellPullMessage;
 import servent.message.util.MessageUtil;
 
 public class TellGetHandler implements MessageHandler {
@@ -28,7 +24,7 @@ public class TellGetHandler implements MessageHandler {
 
 			if (clientMessage.getMessageType() == MessageType.TELL_GET) {
 
-				TellGetMessage tellGetMessage = (TellGetMessage) clientMessage;
+				TellPullMessage tellGetMessage = (TellPullMessage) clientMessage;
 
 				int chordId = Integer.parseInt(tellGetMessage.getMessageText());
 
@@ -45,11 +41,12 @@ public class TellGetHandler implements MessageHandler {
 					
 					AppConfig.chordState.getFileVersions().put(tellGetMessage.getFileName(), tellGetMessage.getVersionOfFIle());
 					AppConfig.fileConfig.setFileContent(newFile, tellGetMessage.getContent());
+					System.out.println("Pull succesfull!");
 					AppConfig.releaseBothMutex();
 				
 				} else {
 					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
-					TellGetMessage tgm = new TellGetMessage(AppConfig.myServentInfo.getListenerPort(),
+					TellPullMessage tgm = new TellPullMessage(AppConfig.myServentInfo.getListenerPort(),
 							AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
 							tellGetMessage.getFile(), tellGetMessage.getFileName(), tellGetMessage.getExtension(),tellGetMessage.getContent(),
 							tellGetMessage.getRelativePath(), chordId, tellGetMessage.getVersionOfFIle());

@@ -133,6 +133,27 @@ public class BootstrapServer {
 					activeServentsIps.add(ip);
 					newServentSocket.close();
 				
+				}else if(message.equals("Quit")) {
+					String newServentPort = socketScanner.nextLine();
+					
+					String serventInfo[] = newServentPort.split(",");
+					
+					String ip = serventInfo[1];
+					Integer port = null;
+					try {
+						port = Integer.parseInt(serventInfo[0]);
+					} catch (NumberFormatException e) {
+						AppConfig.timestampedErrorPrint("Problem reading port. Exiting...");
+						System.exit(0);
+					}
+					
+					
+					System.out.println("removing " + newServentPort);
+					
+					activeServentsPorts.remove(port);
+					activeServentsIps.remove(ip);
+					newServentSocket.close();
+					
 				}
 				
 			} catch (SocketTimeoutException e) {

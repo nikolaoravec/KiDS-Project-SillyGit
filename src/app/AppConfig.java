@@ -10,6 +10,7 @@ import java.util.Properties;
 import java.util.concurrent.Semaphore;
 
 import mutex.TokenMutex;
+import servent.SimpleServentListener;
 
 /**
  * This class contains all the global application configuration stuff.
@@ -24,6 +25,8 @@ public class AppConfig {
 	 */
 	public static ServentInfo myServentInfo;
 	public static Semaphore mutex = new Semaphore(1);
+	public static SimpleServentListener ssl;
+	
 
 	/**
 	 * Print a message to stdout with a timestamp

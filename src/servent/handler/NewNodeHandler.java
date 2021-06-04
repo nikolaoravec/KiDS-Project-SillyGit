@@ -1,6 +1,7 @@
 package servent.handler;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,8 +69,8 @@ public class NewNodeHandler implements MessageHandler {
 
 				AppConfig.chordState.setPredecessor(newNodeInfo);
 
-				Map<Integer, File> myValues = AppConfig.chordState.getValueMap();
-				Map<Integer, File> hisValues = new HashMap<>();
+				Map<Integer, ArrayList<File>> myValues = AppConfig.chordState.getValueMap();
+				Map<Integer, ArrayList<File>> hisValues = new HashMap<>();
 				Map<Integer, List<Integer>> myChildrenValues =  AppConfig.chordState.getChildrenHashes();
 				Map<Integer, List<Integer>> hisChildrenValues = new HashMap<>();
 				
@@ -78,7 +79,7 @@ public class NewNodeHandler implements MessageHandler {
 				int hisPredId = hisPred.getChordId();
 				int newNodeId = newNodeInfo.getChordId();
 
-				for (Entry<Integer, File> valueEntry : myValues.entrySet()) {
+				for (Entry<Integer, ArrayList<File>> valueEntry : myValues.entrySet()) {
 					if (hisPredId == myId) { // i am first and he is second
 						if (myId < newNodeId) {
 							if (valueEntry.getKey() <= newNodeId && valueEntry.getKey() > myId) {

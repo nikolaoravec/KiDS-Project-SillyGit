@@ -1,11 +1,8 @@
 package servent.message;
 
 import java.io.File;
-import java.util.List;
 
-import app.ServentInfo;
-
-public class TellGetMessage extends BasicMessage {
+public class TellPullMessage extends BasicMessage {
 
 	private static final long serialVersionUID = -6213394344524749872L;
 	// private final List<File> files;
@@ -15,7 +12,7 @@ public class TellGetMessage extends BasicMessage {
 	private final String relativePath, extension;
 	private final int versionOfFIle;
 
-	public TellGetMessage(int senderPort, String senderIp, int receiverPort, String receiverIp, File file,
+	public TellPullMessage(int senderPort, String senderIp, int receiverPort, String receiverIp, File file,
 			String fileName, String extension, String content, String relativePath, int chordId, int versionOfFIle) {
 		super(MessageType.TELL_GET, senderPort, senderIp, receiverPort, receiverIp, String.valueOf(chordId));
 		this.fileName = fileName;

@@ -55,6 +55,8 @@ public class ServentMain {
 		Thread listenerThread = new Thread(simpleListener);
 		listenerThread.start();
 		
+		AppConfig.ssl = simpleListener;
+		
 		CLIParser cliParser = new CLIParser(simpleListener);
 		Thread cliThread = new Thread(cliParser);
 		cliThread.start();

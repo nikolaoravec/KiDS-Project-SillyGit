@@ -41,6 +41,7 @@ public class DHTPullCommand implements CLICommand {
 				
 			}
 			int hashFileName = ChordState.chordHash(fileName);
+			System.out.println(hashFileName);
 			AppConfig.chordState.getValue(AppConfig.myServentInfo,hashFileName, version);
 
 		
