@@ -10,19 +10,21 @@ import java.util.concurrent.Executors;
 import app.AppConfig;
 import app.Cancellable;
 import servent.handler.AddHandler;
-import servent.handler.AskGetHandler;
+import servent.handler.AskPullHandler;
 import servent.handler.CommitHandler;
+import servent.handler.ConflictHandler;
 import servent.handler.GiveMyFilesAcceptedHandler;
 import servent.handler.GiveMyFilesHandler;
 import servent.handler.MessageHandler;
 import servent.handler.NewNodeHandler;
 import servent.handler.NullHandler;
+import servent.handler.PushHandler;
 import servent.handler.QuitMessageHandler;
 import servent.handler.ReleaseMutexHandler;
 import servent.handler.RemoveMessageHandler;
 import servent.handler.SetPredecessorHandler;
 import servent.handler.SorryHandler;
-import servent.handler.TellGetHandler;
+import servent.handler.TellPullHandler;
 import servent.handler.TokenHandler;
 import servent.handler.UpdateHandler;
 import servent.handler.WelcomeHandler;
@@ -89,10 +91,10 @@ public class SimpleServentListener implements Runnable, Cancellable {
 					messageHandler = new AddHandler(clientMessage);
 					break;
 				case ASK_GET:
-					messageHandler = new AskGetHandler(clientMessage);
+					messageHandler = new AskPullHandler(clientMessage);
 					break;
 				case TELL_GET:
-					messageHandler = new TellGetHandler(clientMessage);
+					messageHandler = new TellPullHandler(clientMessage);
 					break;
 				case TOKEN:
 					messageHandler = new TokenHandler(clientMessage);
@@ -117,6 +119,12 @@ public class SimpleServentListener implements Runnable, Cancellable {
 					break;
 				case SET_PRED:
 					messageHandler = new SetPredecessorHandler(clientMessage);
+					break;
+				case PUSH:
+					messageHandler = new PushHandler(clientMessage);
+					break;
+				case CONFLICT:
+					messageHandler = new ConflictHandler(clientMessage);
 					break;
 				case POISON:
 					break;

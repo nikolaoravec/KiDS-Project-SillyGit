@@ -109,6 +109,13 @@ public class FileConfig {
 		}
 		return Integer.parseInt(name.substring(lastIndexOfUderscore + 1, lastIndexOf));
 	}
+	
+	public void deleteDirectory(File dir) {
+		for (int i = 0; i < dir.listFiles().length; i++) {
+			boolean ret = dir.listFiles()[i].delete();
+		}
+		boolean ret = dir.delete();
+	}
 
 	public String getRelativePath(String path1, String path2) {
 		if (path2.length() < path1.length()) {

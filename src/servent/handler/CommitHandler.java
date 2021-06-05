@@ -6,6 +6,7 @@ import app.AppConfig;
 import app.ChordState;
 import app.ServentInfo;
 import servent.message.CommitMessage;
+import servent.message.ConflictMessage;
 import servent.message.Message;
 import servent.message.MessageType;
 import servent.message.ReleaseMutexMessage;
@@ -25,17 +26,17 @@ public class CommitHandler implements MessageHandler {
 			CommitMessage commitMessage = (CommitMessage) clientMessage;
 
 			try {
+				boolean conflict = false;
 				int hash = commitMessage.getHashFileName();
 				Integer chordId = Integer.parseInt(commitMessage.getMessageText());
 				int version = commitMessage.getVersion();
-				String messageText = "";
-
+				File maxVersion = null;
+				int max = -1;
 
 				if (AppConfig.chordState.isKeyMine(hash)) {
 					if (AppConfig.chordState.getValueMap().containsKey(hash)) {
 						File storage = new File(AppConfig.STORAGE_PATH + File.separator);
 						File[] files = storage.listFiles();
-						int max = 0;
 						for (int i = 0; i < files.length; i++) {
 
 							String absolutePath1 = AppConfig.fileConfig
@@ -51,43 +52,55 @@ public class CommitHandler implements MessageHandler {
 
 									if (versionOfFile > max) {
 										max = versionOfFile;
-
+										maxVersion = files[i];
 									}
 								}
 							}
 						}
 
+						// desio se konflikt
 						if (max > version) {
-							// logika za konflikt
+							conflict = true;
 
+						} else if (max != -1) {
+
+							File oldFile = new File(AppConfig.STORAGE_PATH + File.separator
+									+ commitMessage.getFileName() + "_" + max + commitMessage.getExtension());
+
+							String oldContent = AppConfig.fileConfig.getFileContent(oldFile);
+
+							if (!oldContent.trim().equals(commitMessage.getContent().trim())) {
+								int newVersion = max + 1;
+								File commitFile = new File(
+										AppConfig.STORAGE_PATH + File.separator + commitMessage.getFileName() + "_"
+												+ newVersion + commitMessage.getExtension());
+								AppConfig.fileConfig.setFileContent(commitFile, commitMessage.getContent());
+								AppConfig.chordState.getFileVersions().put(commitFile.getName(), newVersion);
+								AppConfig.chordState.getValueMap().get(hash).add(commitFile);
+							}
 						}
-						File oldFile = new File(AppConfig.STORAGE_PATH + File.separator + commitMessage.getFileName()
-								+ "_" + max + commitMessage.getExtension());
 
-						String oldContent = AppConfig.fileConfig.getFileContent(oldFile);
+						if (maxVersion != null) {
+							ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
+							ConflictMessage conflictMessage = new ConflictMessage(
+									AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
+									nextNode.getListenerPort(), nextNode.getIpAddress(), chordId, hash,
+									AppConfig.fileConfig.getFileContent(maxVersion),
+									AppConfig.fileConfig.getFileExtension(maxVersion),
+									AppConfig.fileConfig.getFileNameWithoutVersion(maxVersion.getName()), max,
+									conflict);
 
-						if (!oldContent.trim().equals(commitMessage.getContent().trim())) {
-							int newVersion = max + 1;
-							File commitFile = new File(AppConfig.STORAGE_PATH + File.separator
-									+ commitMessage.getFileName() + "_" + newVersion + commitMessage.getExtension());
-							AppConfig.fileConfig.setFileContent(commitFile, commitMessage.getContent());
-							AppConfig.chordState.getFileVersions().put(commitFile.getName(), newVersion);
-							AppConfig.chordState.getValueMap().get(hash).add(commitFile);
+							MessageUtil.sendMessage(conflictMessage);
+						} else {
+							ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
+							ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(
+									AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
+									nextNode.getListenerPort(), nextNode.getIpAddress(), chordId,
+									"The file you try to commit is deleted or doesn't exist!");
 
+							MessageUtil.sendMessage(releaseMutexMessage);
 						}
-
-						messageText = "Fajl je commitovan";
-					} else {
-						messageText = "Fajl ne postoji ili je izbrisan";
-						
 					}
-					
-					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
-					ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(
-							AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
-							nextNode.getListenerPort(), nextNode.getIpAddress(), chordId, messageText);
-
-					MessageUtil.sendMessage(releaseMutexMessage);
 				} else {
 					ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(hash);
 					CommitMessage pm = new CommitMessage(AppConfig.myServentInfo.getListenerPort(),

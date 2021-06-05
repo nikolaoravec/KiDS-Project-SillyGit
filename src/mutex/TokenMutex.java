@@ -14,7 +14,7 @@ public final class TokenMutex{
 	public static volatile AtomicBoolean wantLock =  new AtomicBoolean(false);
 	
 	public static void lock() {
-		wantLock.set(true);;
+		wantLock.set(true);
 		
 		while (!haveToken.get()) {
 			try {
@@ -27,8 +27,8 @@ public final class TokenMutex{
 	}
 
 	public static void unlock() {
-		haveToken.set(false);;
-		wantLock.set(false);;
+		haveToken.set(false);
+		wantLock.set(false);
 		sendTokenForward();
 
 	}

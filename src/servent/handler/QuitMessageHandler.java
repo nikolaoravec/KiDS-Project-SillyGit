@@ -27,22 +27,22 @@ public class QuitMessageHandler implements MessageHandler {
 			int chordId = Integer.parseInt(quitMessage.getMessageText());
 
 			if (AppConfig.myServentInfo.getChordId() == chordId) {
-				
-				SetPredecessorMessage setPredecessorMessage = new SetPredecessorMessage(AppConfig.myServentInfo.getListenerPort(),
-						AppConfig.myServentInfo.getIpAddress(), AppConfig.chordState.getNextNodePort(),
-						AppConfig.chordState.getNextNodeIp(), 
+
+				SetPredecessorMessage setPredecessorMessage = new SetPredecessorMessage(
+						AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
+						AppConfig.chordState.getNextNodePort(), AppConfig.chordState.getNextNodeIp(),
 						AppConfig.chordState.getPredecessor().getIpAddress(),
 						AppConfig.chordState.getPredecessor().getListenerPort());
-				
+
 				MessageUtil.sendMessage(setPredecessorMessage);
 
+				File f = new File(AppConfig.STORAGE_PATH);
+
+				AppConfig.fileConfig.deleteDirectory(f);
 
 				AppConfig.releaseBothMutex();
-				
-				File f = new File(AppConfig.STORAGE);
-				
-				boolean ret = f.delete();
-					//System.out.println("Storage is deleted.");
+
+				// System.out.println("Storage is deleted.");
 
 				try {
 					Thread.sleep(10000);
@@ -53,7 +53,7 @@ public class QuitMessageHandler implements MessageHandler {
 
 				AppConfig.ssl.stop();
 
-//				DO UNLOCK AND WAIT TO CLOSE SSL
+				// DO UNLOCK AND WAIT TO CLOSE SSL
 
 			} else {
 
@@ -63,7 +63,6 @@ public class QuitMessageHandler implements MessageHandler {
 
 				MessageUtil.sendMessage(nextQuitMessage);
 
-				ServentInfo toRemove = null;
 				List<ServentInfo> newList = new ArrayList<>();
 				for (ServentInfo s : AppConfig.chordState.allNodeInfo) {
 					if (s.getChordId() != chordId) {
@@ -71,32 +70,10 @@ public class QuitMessageHandler implements MessageHandler {
 					}
 				}
 				AppConfig.chordState.setAllNodeInfo(newList);
-			
-//				try {
-//					Thread.sleep(1000);
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
 
 				AppConfig.chordState.updateSuccessorTable();
-//				ServentInfo[] newSuccesorTable = new ServentInfo[AppConfig.chordState.getSuccessorTable().length - 1];
-//				int index = 0;
-//				for (int i = 0; i < AppConfig.chordState.getSuccessorTable().length; i++) {
-//					if (!(AppConfig.chordState.getSuccessorTable()[i].getChordId() == chordId)) {
-//						newSuccesorTable[index++] = AppConfig.chordState.getSuccessorTable()[i];
-//					}
-//				}
-//				
-//				for (int i = 0; i < index; i++) {
-//					AppConfig.chordState.getSuccessorTable()[i] = newSuccesorTable[i];
-//				}
-//				System.out.println("Old: " + AppConfig.chordState.getSuccessorTable().toString());
-//				System.out.println("New: " + newSuccesorTable.toString());
-//				int len = AppConfig.chordState.getSuccessorTable().length;
-//				AppConfig.chordState.getSuccessorTable()[len-1] = null;
 
 			}
-
 		}
 	}
 }

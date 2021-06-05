@@ -10,10 +10,14 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
+import model.ConflictObject;
+import servent.handler.ConflictHandler;
 import servent.message.AddMessage;
 import servent.message.AskPullMessage;
 import servent.message.CommitMessage;
+import servent.message.PushMessage;
 import servent.message.RemoveMessage;
 import servent.message.WelcomeMessage;
 import servent.message.util.MessageUtil;
@@ -60,7 +64,6 @@ public class ChordState {
 		allNodeInfo = new ArrayList<>();
 		fileVersions = new HashMap<>();
 	}
-	
 
 	/**
 	 * This should be called once after we get <code>WELCOME</code> message. It sets
@@ -91,11 +94,10 @@ public class ChordState {
 		}
 	}
 
-	
 	public void setAllNodeInfo(List<ServentInfo> allNodeInfo) {
 		this.allNodeInfo = allNodeInfo;
 	}
-	
+
 	public Map<Integer, List<Integer>> getChildrenHashes() {
 		return childrenHashes;
 	}
@@ -168,7 +170,7 @@ public class ChordState {
 
 		int predecessorChordId = predecessorInfo.getChordId();
 		int myChordId = AppConfig.myServentInfo.getChordId();
-		 System.out.println(" predecesor " +predecessorChordId + " ja sam " + myChordId);
+		System.out.println(" predecesor " + predecessorChordId + " ja sam " + myChordId);
 		if (predecessorChordId < myChordId) { // no overflow
 			if (key <= myChordId && key > predecessorChordId) {
 				return true;
@@ -281,7 +283,7 @@ public class ChordState {
 				}
 			}
 		}
-		System.out.println("nova lista sledbenika "+ successorTable.toString());
+		System.out.println("nova lista sledbenika " + successorTable.toString());
 	}
 
 	/**
@@ -374,7 +376,7 @@ public class ChordState {
 				if (!newFile.exists()) {
 					newFile.mkdir();
 				}
-				
+
 				ArrayList<File> list = new ArrayList<File>();
 				list.add(newFile);
 				valueMap.put(hashFileName, list);
@@ -407,7 +409,9 @@ public class ChordState {
 
 			File storage = new File(AppConfig.STORAGE_PATH + File.separator);
 			File[] files = storage.listFiles();
-			int max = 0;
+			int max = -1;
+			File maxVersion = null;
+
 			for (int i = 0; i < files.length; i++) {
 
 				String absolutePath1 = AppConfig.fileConfig.getFileNameWithoutVersion(files[i].getAbsolutePath());
@@ -422,31 +426,74 @@ public class ChordState {
 
 						if (versionOfFile > max) {
 							max = versionOfFile;
-
+							maxVersion = files[i];
 						}
 					}
 				}
 			}
-			File oldFile = new File(AppConfig.STORAGE_PATH + File.separator + fileName + "_" + max + extension);
 
-			String oldContent = AppConfig.fileConfig.getFileContent(oldFile);
+			if (max > version) {
 
-			if (!oldContent.trim().equals(content.trim())) {
-				int newVersion = max + 1;
-				File commitFile = new File(
-						AppConfig.STORAGE_PATH + File.separator + fileName + "_" + newVersion + extension);
-				
-				AppConfig.fileConfig.setFileContent(commitFile, content);
-				getValueMap().get(hashFileName).add(commitFile);
+				ConflictObject conflictObject = new ConflictObject(max, AppConfig.fileConfig.getFileContent(maxVersion), fileName, extension);
+				AppConfig.myServentInfo.getConflicts().put(hashFileName, conflictObject);
+				System.out.println(AppConfig.myServentInfo.getConflicts().toString());
+				System.out.println("You have a conflict for files: ");
+				for (Entry<Integer, ConflictObject> valueEntry : AppConfig.myServentInfo.getConflicts().entrySet()) {
+					System.out.println(
+							AppConfig.fileConfig.getFileNameWithoutVersion(valueEntry.getValue().getFileName()));
+				}
 
-			}else {
-				System.err.println("File not found.");
+				System.out.println("Choose an option: view [file], pull_conflict [file], push [file]");
+
+			} else if (max != -1) {
+
+				File oldFile = new File(AppConfig.STORAGE_PATH + File.separator + fileName + "_" + max + extension);
+
+				String oldContent = AppConfig.fileConfig.getFileContent(oldFile);
+
+				if (!oldContent.trim().equals(content.trim())) {
+					int newVersion = max + 1;
+					File commitFile = new File(
+							AppConfig.STORAGE_PATH + File.separator + fileName + "_" + newVersion + extension);
+					AppConfig.fileConfig.setFileContent(commitFile, content);
+					AppConfig.chordState.getFileVersions().put(commitFile.getName(), newVersion);
+					AppConfig.chordState.getValueMap().get(hashFileName).add(commitFile);
+				}
 			}
+
+			System.out.println("The file you try to commit is deleted or doesn't exist!");
 			AppConfig.releaseBothMutex();
 
 		} else {
 			ServentInfo nextNode = getNextNodeForKey(hashFileName);
 			CommitMessage pm = new CommitMessage(AppConfig.myServentInfo.getListenerPort(),
+					AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
+					hashFileName, fileName, content, extension, version, isDir, children,
+					AppConfig.myServentInfo.getChordId());
+			MessageUtil.sendMessage(pm);
+		}
+	}
+
+	public void push(int hashFileName, String fileName, String content, String extension, boolean isDir,
+			ArrayList<String> children, int version) {
+
+		if (isKeyMine(hashFileName)) {
+
+			int newVersion = version + 1;
+			File commitFile = new File(
+					AppConfig.STORAGE_PATH + File.separator + fileName + "_" + newVersion + extension);
+
+			AppConfig.fileConfig.setFileContent(commitFile, content);
+			getValueMap().get(hashFileName).add(commitFile);
+
+			fileVersions.put(fileName, newVersion);
+
+			System.out.println("Push command succesfull!");
+			AppConfig.releaseBothMutex();
+
+		} else {
+			ServentInfo nextNode = getNextNodeForKey(hashFileName);
+			PushMessage pm = new PushMessage(AppConfig.myServentInfo.getListenerPort(),
 					AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
 					hashFileName, fileName, content, extension, version, isDir, children,
 					AppConfig.myServentInfo.getChordId());
@@ -510,6 +557,8 @@ public class ChordState {
 					System.out.println("Fajl nije pronadjen");
 
 				}
+			}else {
+				System.out.println("File is deleted or doesn't exist!");
 			}
 			AppConfig.releaseBothMutex();
 
@@ -540,19 +589,19 @@ public class ChordState {
 				if (!relative.equals("")) {
 
 					if (ChordState.chordHash(relative) == hashFileName) {
-						files[i].delete();
+						boolean ret = files[i].delete();
 					}
 				}
 			}
-
+			AppConfig.chordState.getValueMap().remove(hashFileName);
 			AppConfig.releaseBothMutex();
 
 		} else {
 			ServentInfo nextNode = getNextNodeForKey(hashFileName);
-			RemoveMessage dm = new RemoveMessage(AppConfig.myServentInfo.getListenerPort(),
+			RemoveMessage rm = new RemoveMessage(AppConfig.myServentInfo.getListenerPort(),
 					AppConfig.myServentInfo.getIpAddress(), nextNode.getListenerPort(), nextNode.getIpAddress(),
 					hashFileName, AppConfig.myServentInfo.getChordId());
-			MessageUtil.sendMessage(dm);
+			MessageUtil.sendMessage(rm);
 		}
 	}
 

@@ -1,4 +1,5 @@
+/app/
+/servent/
+/model/
 /cli/
 /mutex/
-/servent/
-/app/

@@ -10,11 +10,11 @@ import servent.message.MessageType;
 import servent.message.TellPullMessage;
 import servent.message.util.MessageUtil;
 
-public class TellGetHandler implements MessageHandler {
+public class TellPullHandler implements MessageHandler {
 
 	private Message clientMessage;
 
-	public TellGetHandler(Message clientMessage) {
+	public TellPullHandler(Message clientMessage) {
 		this.clientMessage = clientMessage;
 	}
 

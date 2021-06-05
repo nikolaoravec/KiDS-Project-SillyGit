@@ -12,11 +12,11 @@ import servent.message.ReleaseMutexMessage;
 import servent.message.TellPullMessage;
 import servent.message.util.MessageUtil;
 
-public class AskGetHandler implements MessageHandler {
+public class AskPullHandler implements MessageHandler {
 
 	private Message clientMessage;
 
-	public AskGetHandler(Message clientMessage) {
+	public AskPullHandler(Message clientMessage) {
 		this.clientMessage = clientMessage;
 	}
 
@@ -33,9 +33,10 @@ public class AskGetHandler implements MessageHandler {
 				int hash = Integer.parseInt(messageText[0]);
 				int version = Integer.parseInt(messageText[1]);
 				int chordId = Integer.parseInt(messageText[2]);
-				
+
 				String relativeGLobal = "";
-				System.out.println("da li je moj kljuc " + AppConfig.chordState.isKeyMine(hash));
+				// System.out.println("da li je moj kljuc " +
+				// AppConfig.chordState.isKeyMine(hash));
 				if (AppConfig.chordState.isKeyMine(hash)) {
 					if (AppConfig.chordState.getValueMap().containsKey(hash)) {
 						File toReturn = null;
@@ -57,7 +58,7 @@ public class AskGetHandler implements MessageHandler {
 									if (!files[i].isDirectory()) {
 										if (version == -1) {
 											int versionOfFile = AppConfig.fileConfig.getFileVersion(files[i]);
-											
+
 											if (versionOfFile > max) {
 												max = versionOfFile;
 												toReturn = files[i];
@@ -77,7 +78,6 @@ public class AskGetHandler implements MessageHandler {
 								}
 							}
 						}
-
 
 						if (toReturn != null) {
 							int versionOfFile = AppConfig.fileConfig.getFileVersion(toReturn);
@@ -104,7 +104,8 @@ public class AskGetHandler implements MessageHandler {
 						ServentInfo nextNode = AppConfig.chordState.getNextNodeForKey(chordId);
 						ReleaseMutexMessage releaseMutexMessage = new ReleaseMutexMessage(
 								AppConfig.myServentInfo.getListenerPort(), AppConfig.myServentInfo.getIpAddress(),
-								nextNode.getListenerPort(), nextNode.getIpAddress(), chordId, "File not found to pull!");
+								nextNode.getListenerPort(), nextNode.getIpAddress(), chordId,
+								"File not found to pull!");
 
 						MessageUtil.sendMessage(releaseMutexMessage);
 					}

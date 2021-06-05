@@ -13,9 +13,12 @@ import cli.command.DHTPullCommand;
 import cli.command.RemoveCommand;
 import cli.command.InfoCommand;
 import cli.command.PauseCommand;
+import cli.command.PullConflictCommand;
+import cli.command.PushCommand;
 import cli.command.QuitCommand;
 import cli.command.StopCommand;
 import cli.command.SuccessorInfo;
+import cli.command.ViewCommand;
 import servent.SimpleServentListener;
 
 /**
@@ -53,6 +56,9 @@ public class CLIParser implements Runnable, Cancellable {
 		commandList.add(new StopCommand(this, listener));
 		commandList.add(new CommitCommand());
 		commandList.add(new RemoveCommand());
+		commandList.add(new ViewCommand());
+		commandList.add(new PullConflictCommand());
+		commandList.add(new PushCommand());
 		commandList.add(new QuitCommand(this));
 	}
 	
